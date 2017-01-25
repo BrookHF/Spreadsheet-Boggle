@@ -1,4 +1,5 @@
 ﻿// Skeleton written by Joe Zachary for CS 3500, January 2017
+// Start PS2 by Fang He, January 24 2017
 
 using System;
 using System.Collections.Generic;
@@ -35,8 +36,74 @@ namespace Formulas
         /// If the formula is syntacticaly invalid, throws a FormulaFormatException with an 
         /// explanatory Message.
         /// </summary>
+        
+        /// There can be no invalid tokens.
+        
+        /// There must be at least one token.
+
+        /// When reading tokens from left to right, at no point should the number of closing parentheses seen so far be greater than the number of opening parentheses seen so far.
+
+        /// The total number of opening parentheses must equal the total number of closing parentheses.
+
+        /// The first token of a formula must be a number, a variable, or an opening parenthesis.
+
+        /// The last token of a formula must be a number, a variable, or a closing parenthesis.
+
+        /// Any token that immediately follows an opening parenthesis or an operator must be either a number, a variable, or an opening parenthesis.
+
+        /// Any token that immediately follows a number, a variable, or a closing parenthesis must be either an operator or a closing parenthesis.
+
         public Formula(String formula)
         {
+            IEnumerable<string> tokens = GetTokens(formula);
+            List<String> listTokens = new List<string>();
+            foreach (String s in tokens)
+            {
+                listTokens.Add(s);
+            }
+            if (listTokens.Count == 0)
+            {
+                throw new FormulaFormatException("Formula is empty");
+            }
+            int pareNum = 0;
+            foreach (String s in tokens)
+            {
+                Console.Write(s+" ");
+                if (s.Equals("("))
+                {
+                    pareNum++;
+                }
+                if( s.Equals(")")) 
+                {
+                    if(pareNum <= 0) throw new FormulaFormatException("Formular has ilegal parenthesis");
+                    pareNum--;
+                }
+            }
+            Console.WriteLine("");
+            if(pareNum != 0)
+            {
+                throw new FormulaFormatException("Formular has ilegal parenthesis not equal openning and closing");
+            }
+            if (!Regex.IsMatch(listTokens[0], @"^[a-zA-Z0-9(]+$"))
+            {
+                throw new FormulaFormatException("Formular first token is not number or openning parenthesis");
+            }
+            if (!Regex.IsMatch(listTokens[listTokens.Count-1], @"^[a-zA-Z0-9)]+$"))
+            {
+                throw new FormulaFormatException("Formular last token is not number or closing parenthesis");
+            }
+            for(int i=0; i< listTokens.Count - 1; i++)
+            {
+                if (Regex.IsMatch(listTokens[i], @"^[(\-\+*/(]+$")&& !Regex.IsMatch(listTokens[i+1], @"^[a-zA-Z0-9(]+$"))
+                {
+                    throw new FormulaFormatException("Formular token immediately follows an opening parenthesis or an operator must be either a number, a variable, or an opening parenthesis");
+                }
+                if(Regex.IsMatch(listTokens[i], @"^[a-zA-Z0-9)]+$") && !Regex.IsMatch(listTokens[i+1], @"^[\+\-*/)]+$"))
+                {
+                    throw new FormulaFormatException("Formular token immediately follows a number, a variable, or a closing parenthesis must be either an operator or a closing parenthesis.");
+                }
+            }
+
         }
         /// <summary>
         /// Evaluates this Formula, using the Lookup delegate to determine the values of variables.  (The

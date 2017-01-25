@@ -47,6 +47,16 @@ namespace FormulaTestCases
         }
 
         /// <summary>
+        /// This is another syntax error
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct4()
+        {
+            Formula f = new Formula("2 5 + 3");
+        }
+
+        /// <summary>
         /// Makes sure that "2+3" evaluates to 5.  Since the Formula
         /// contains no variables, the delegate passed in as the
         /// parameter doesn't matter.  We are passing in one that
