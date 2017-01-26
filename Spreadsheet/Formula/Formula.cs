@@ -38,70 +38,72 @@ namespace Formulas
         /// explanatory Message.
         /// </summary>
 
-        /// There can be no invalid tokens.
-
-        /// There must be at least one token.
-
-        /// When reading tokens from left to right, at no point should the number of closing parentheses seen so far be greater than the number of opening parentheses seen so far.
-
-        /// The total number of opening parentheses must equal the total number of closing parentheses.
-
-        /// The first token of a formula must be a number, a variable, or an opening parenthesis.
-
-        /// The last token of a formula must be a number, a variable, or a closing parenthesis.
-
-        /// Any token that immediately follows an opening parenthesis or an operator must be either a number, a variable, or an opening parenthesis.
-
-        /// Any token that immediately follows a number, a variable, or a closing parenthesis must be either an operator or a closing parenthesis.
-
         private IEnumerable<string> tokens;
 
         public Formula(String formula)
         {
+            // get tokens from helper method
             tokens = GetTokens(formula);
+
+            // put enumerable to list in order to see the size
             List<String> listTokens = new List<string>();
             foreach (String s in tokens)
             {
                 listTokens.Add(s);
             }
+
+            // There must be at least one token.
             if (listTokens.Count == 0)
             {
                 throw new FormulaFormatException("Formula is empty");
             }
+
+            // keep track of number of openning - closing pareme
             int pareNum = 0;
             foreach (String s in tokens)
             {
-                Console.Write(s+" ");
                 if (s.Equals("("))
                 {
                     pareNum++;
                 }
                 if( s.Equals(")")) 
                 {
-                    if(pareNum <= 0) throw new FormulaFormatException("Formular has ilegal parenthesis");
+                    // When reading tokens from left to right, at no point should the number of closing 
+                    // parentheses seen so far be greater than the number of opening parentheses seen so far.
+                    if (pareNum <= 0) throw new FormulaFormatException("Formular has ilegal parenthesis");
                     pareNum--;
                 }
             }
-            Console.WriteLine("");
-            if(pareNum != 0)
+
+            // The total number of opening parentheses must equal the total number of closing parentheses.
+            if (pareNum != 0)
             {
                 throw new FormulaFormatException("Formular has ilegal parenthesis not equal openning and closing");
             }
+
+            // The first token of a formula must be a number, a variable, or an opening parenthesis.
             if (!Regex.IsMatch(listTokens[0], @"^[a-zA-Z0-9(.]+$"))
             {
                 throw new FormulaFormatException("Formular first token is not number or openning parenthesis");
             }
+
+            // The last token of a formula must be a number, a variable, or a closing parenthesis.
             if (!Regex.IsMatch(listTokens[listTokens.Count-1], @"^[a-zA-Z0-9).]+$"))
             {
                 throw new FormulaFormatException("Formular last token is not number or closing parenthesis");
             }
             for(int i=0; i< listTokens.Count - 1; i++)
             {
+                // Any token that immediately follows an opening parenthesis or an operator must be either a number, 
+                // a variable, or an opening parenthesis.
                 if (Regex.IsMatch(listTokens[i], @"^[(\-\+*/(]+$")&& !Regex.IsMatch(listTokens[i+1], @"^[a-zA-Z0-9.(]+$"))
                 {
                     throw new FormulaFormatException("Formular token immediately follows an opening parenthesis or an operator must be either a number, a variable, or an opening parenthesis");
                 }
-                if(Regex.IsMatch(listTokens[i], @"^[a-zA-Z0-9.)]+$") && !Regex.IsMatch(listTokens[i+1], @"^[\+\-*/)]+$"))
+
+                // Any token that immediately follows a number, a variable, or a closing parenthesis must be either an 
+                // operator or a closing parenthesis.
+                if (Regex.IsMatch(listTokens[i], @"^[a-zA-Z0-9.)]+$") && !Regex.IsMatch(listTokens[i+1], @"^[\+\-*/)]+$"))
                 {
                     throw new FormulaFormatException("Formular token immediately follows a number, a variable, or a closing parenthesis must be either an operator or a closing parenthesis.");
                 }
@@ -133,14 +135,13 @@ namespace Formulas
                     //and apply the popped operator to t and the popped number. Push the result onto the value stack.
                     if (ope.Count>0 && Regex.IsMatch(ope.Peek(), @"^[*/]+$"))
                     {
-                        String tempOperator = ope.Pop();
-                        if (tempOperator.Equals("*"))
+                        if (ope.Pop().Equals("*"))
                         {
                             resultValue = value.Pop() * currValue;
                         }
-                        else if (tempOperator.Equals("/"))
+                        else
                         {
-                            resultValue = value.Pop() * currValue;
+                            resultValue = value.Pop() / currValue;
                         }
                         value.Push(resultValue);
 
@@ -153,20 +154,23 @@ namespace Formulas
                     }
                 }
                 //Proceed as in the previous case, using the looked-up value of t in place of t
-                else if (Regex.IsMatch(s, @"^[a-zA-Z]+[a-zA-Z0-9]+$"))
+                else if (Regex.IsMatch(s, @"^[a-zA-Z0-9]+$"))
                 {
-                    double currValue=lookup(s);
-                        
+                    double currValue;
+                    //Console.WriteLine(s);
+                    try { currValue = lookup(s); }
+                    catch (UndefinedVariableException e) {
+                        throw new FormulaEvaluationException(s);
+                    }
                     if (ope.Count > 0 && Regex.IsMatch(ope.Peek(), "^[*/]+$"))
                     {
-                        String tempOperator = ope.Pop();
-                        if (tempOperator.Equals("*"))
+                        if (ope.Pop().Equals("*"))
                         {
                             resultValue = value.Pop() * currValue;
                         }
-                        else if (tempOperator.Equals("/"))
+                        else
                         {
-                            resultValue = value.Pop() * currValue;
+                            resultValue = value.Pop() / currValue;
                         }
                         value.Push(resultValue);
                     }
@@ -222,6 +226,7 @@ namespace Formulas
                         {
                             value.Push(left - right);
                         }
+                        Console.WriteLine(ope.Peek()+value.Peek());
                     }
 
                     //Whether or not you did the first step, the top of the operator stack will be a (. Pop it.
@@ -248,10 +253,13 @@ namespace Formulas
             }
 
 
-            //Console.WriteLine(value.Count);
+            //Console.WriteLine("value: " + value.Count);
+            //Console.WriteLine("operator: " + ope.Count);
+            //Console.WriteLine("value1: " + value.Peek());
 
             if (ope.Count == 0)
             {
+                //Console.WriteLine("return");
                 return value.Pop();
             }
             else if(value.Count > 1)

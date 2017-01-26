@@ -14,9 +14,13 @@ namespace TestMain
         public delegate double Lookup(string var);
         static void Main(string[] args)
         {
-            Formula f = new Formula("x2");
-            f.Evaluate(v => { throw new UndefinedVariableException(v); });
-            //Console.WriteLine(Regex.IsMatch("e332134", @"^[a-zA-Z]+[a-zA-Z0-9]+$"));
+            Formula f = new Formula("(z/x)");
+            Console.WriteLine(f.Evaluate(Lookup4));
+            //Lookup look = Lookup4;
+            //Console.WriteLine(look("x"));
+            //Console.WriteLine(Regex.IsMatch("x", @"^[a-zA-Z0-9]+$"));
+
+
             while (true) ;
         }
         public static double Lookup4(String v)
