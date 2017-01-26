@@ -2,6 +2,7 @@
 // Start PS2 by Fang He, January 24 2017
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -36,9 +37,9 @@ namespace Formulas
         /// If the formula is syntacticaly invalid, throws a FormulaFormatException with an 
         /// explanatory Message.
         /// </summary>
-        
+
         /// There can be no invalid tokens.
-        
+
         /// There must be at least one token.
 
         /// When reading tokens from left to right, at no point should the number of closing parentheses seen so far be greater than the number of opening parentheses seen so far.
@@ -53,9 +54,11 @@ namespace Formulas
 
         /// Any token that immediately follows a number, a variable, or a closing parenthesis must be either an operator or a closing parenthesis.
 
+        private IEnumerable<string> tokens;
+
         public Formula(String formula)
         {
-            IEnumerable<string> tokens = GetTokens(formula);
+            tokens = GetTokens(formula);
             List<String> listTokens = new List<string>();
             foreach (String s in tokens)
             {
@@ -84,21 +87,21 @@ namespace Formulas
             {
                 throw new FormulaFormatException("Formular has ilegal parenthesis not equal openning and closing");
             }
-            if (!Regex.IsMatch(listTokens[0], @"^[a-zA-Z0-9(]+$"))
+            if (!Regex.IsMatch(listTokens[0], @"^[a-zA-Z0-9(.]+$"))
             {
                 throw new FormulaFormatException("Formular first token is not number or openning parenthesis");
             }
-            if (!Regex.IsMatch(listTokens[listTokens.Count-1], @"^[a-zA-Z0-9)]+$"))
+            if (!Regex.IsMatch(listTokens[listTokens.Count-1], @"^[a-zA-Z0-9).]+$"))
             {
                 throw new FormulaFormatException("Formular last token is not number or closing parenthesis");
             }
             for(int i=0; i< listTokens.Count - 1; i++)
             {
-                if (Regex.IsMatch(listTokens[i], @"^[(\-\+*/(]+$")&& !Regex.IsMatch(listTokens[i+1], @"^[a-zA-Z0-9(]+$"))
+                if (Regex.IsMatch(listTokens[i], @"^[(\-\+*/(]+$")&& !Regex.IsMatch(listTokens[i+1], @"^[a-zA-Z0-9.(]+$"))
                 {
                     throw new FormulaFormatException("Formular token immediately follows an opening parenthesis or an operator must be either a number, a variable, or an opening parenthesis");
                 }
-                if(Regex.IsMatch(listTokens[i], @"^[a-zA-Z0-9)]+$") && !Regex.IsMatch(listTokens[i+1], @"^[\+\-*/)]+$"))
+                if(Regex.IsMatch(listTokens[i], @"^[a-zA-Z0-9.)]+$") && !Regex.IsMatch(listTokens[i+1], @"^[\+\-*/)]+$"))
                 {
                     throw new FormulaFormatException("Formular token immediately follows a number, a variable, or a closing parenthesis must be either an operator or a closing parenthesis.");
                 }
@@ -116,6 +119,157 @@ namespace Formulas
         /// </summary>
         public double Evaluate(Lookup lookup)
         {
+            // Patterns for individual tokens
+
+            Stack<string> ope = new Stack<string>();
+            Stack<double> value = new Stack<double>();
+            double resultValue = 0.0;
+            foreach(string s in tokens)
+            {
+                if (Regex.IsMatch(s, @"^[0-9e.]"))
+                {
+                    double currValue = Convert.ToDouble(s);
+                    //If* or / is at the top of the operator stack, pop the value stack, pop the operator stack, 
+                    //and apply the popped operator to t and the popped number. Push the result onto the value stack.
+                    if (ope.Count>0 && Regex.IsMatch(ope.Peek(), @"^[*/]+$"))
+                    {
+                        String tempOperator = ope.Pop();
+                        if (tempOperator.Equals("*"))
+                        {
+                            resultValue = value.Pop() * currValue;
+                        }
+                        else if (tempOperator.Equals("/"))
+                        {
+                            resultValue = value.Pop() * currValue;
+                        }
+                        value.Push(resultValue);
+
+                    }
+                    //Otherwise, push t onto the value stack
+                    else
+                    {
+                        Console.WriteLine(currValue);
+                        value.Push(currValue);
+                    }
+                }
+                //Proceed as in the previous case, using the looked-up value of t in place of t
+                else if (Regex.IsMatch(s, @"^[a-zA-Z]+[a-zA-Z0-9]+$"))
+                {
+                    double currValue=lookup(s);
+                        
+                    if (ope.Count > 0 && Regex.IsMatch(ope.Peek(), "^[*/]+$"))
+                    {
+                        String tempOperator = ope.Pop();
+                        if (tempOperator.Equals("*"))
+                        {
+                            resultValue = value.Pop() * currValue;
+                        }
+                        else if (tempOperator.Equals("/"))
+                        {
+                            resultValue = value.Pop() * currValue;
+                        }
+                        value.Push(resultValue);
+                    }
+                    else
+                    {
+                        value.Push(currValue);
+                    }
+                }
+
+                //Is + or -
+                if (s.Equals("+") || s.Equals("-"))
+                {
+                    //If + or - is at the top of the operator stack, pop the value stack twice and the operator stack once.  
+                    //Apply the popped operator to the popped numbers. Push the result onto the value stack.
+                    if (ope.Count>0 && (ope.Peek().Equals("+") || ope.Peek().Equals("-")))
+                    {
+                        double left = value.Pop();
+                        double right = value.Pop();
+
+                        if (ope.Pop().Equals("+"))
+                        {
+                            value.Push(left + right);
+                        }
+                        else
+                        {
+                            value.Push(left - right);
+                        }
+                    }
+                    //Whether or not you did the first step, push t onto the operator stack
+                    ope.Push(s);
+                    
+                }
+
+                if (Regex.IsMatch(s, @"^[*/(]"))
+                {
+                    ope.Push(s);
+                }
+
+                if (s.Equals(")"))
+                {
+                    //If + or - is at the top of the operator stack, pop the value stack twice and the operator stack once. 
+                    //Apply the popped operator to the popped numbers. Push the result onto the value stack.
+                    if (ope.Peek().Equals("+") || ope.Peek().Equals("-"))
+                    {
+                        double left = value.Pop();
+                        double right = value.Pop();
+
+                        if (ope.Pop().Equals("+"))
+                        {
+                            value.Push(left + right);
+                        }
+                        else
+                        {
+                            value.Push(left - right);
+                        }
+                    }
+
+                    //Whether or not you did the first step, the top of the operator stack will be a (. Pop it.
+                    ope.Pop();
+
+                    //After you have completed the previous step, if * or / is at the top of the operator stack, pop the 
+                    //value stack twice and the operator stack once. Apply the popped operator to the popped numbers. 
+                    //Push the result onto the value stack.
+                    if(value.Count>1&&(ope.Peek().Equals("*")|| ope.Peek().Equals("/")))
+                    {
+                        double left = value.Pop();
+                        double right = value.Pop();
+
+                        if (ope.Pop().Equals("*"))
+                        {
+                            value.Push(left * right);
+                        }
+                        else
+                        {
+                            value.Push(left / right);
+                        }
+                    }
+                }
+            }
+
+
+            //Console.WriteLine(value.Count);
+
+            if (ope.Count == 0)
+            {
+                return value.Pop();
+            }
+            else if(value.Count > 1)
+            {
+                double left = value.Pop();
+                double right = value.Pop();
+
+                if (ope.Pop().Equals("+"))
+                {
+                    return left + right;
+                }
+                else
+                {
+                    return left - right;
+                }
+
+            }
+
             return 0;
         }
 
@@ -145,7 +299,7 @@ namespace Formulas
 
             // Enumerate matching tokens that don't consist solely of white space.
             // PLEASE NOTE:  Notice the second parameter to Split, which says to ignore embedded white space
-            /// in the pattern.
+            // in the pattern.
             foreach (String s in Regex.Split(formula, pattern, RegexOptions.IgnorePatternWhitespace))
             {
                 if (!Regex.IsMatch(s, @"^\s*$", RegexOptions.Singleline))

@@ -10,15 +10,24 @@ namespace TestMain
 {
     class Program
     {
+
+        public delegate double Lookup(string var);
         static void Main(string[] args)
         {
-            String s = "3", ss = "4";
-            if (Regex.IsMatch(s, @"^[a-zA-Z0-9)]+$") && !Regex.IsMatch(ss, @"^[\+\-*/)]+$"))
-            {
-                Console.WriteLine("true");
-            }
+            Formula f = new Formula("x2");
+            f.Evaluate(v => { throw new UndefinedVariableException(v); });
+            //Console.WriteLine(Regex.IsMatch("e332134", @"^[a-zA-Z]+[a-zA-Z0-9]+$"));
             while (true) ;
         }
-        
+        public static double Lookup4(String v)
+        {
+            switch (v)
+            {
+                case "x": return 4.0;
+                case "y": return 6.0;
+                case "z": return 8.0;
+                default: throw new UndefinedVariableException(v);
+            }
+        }
     }
 }
