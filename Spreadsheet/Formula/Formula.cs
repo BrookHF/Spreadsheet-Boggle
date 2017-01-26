@@ -49,6 +49,12 @@ namespace Formulas
             List<String> listTokens = new List<string>();
             foreach (String s in tokens)
             {
+                double i=0;
+                if (!Regex.IsMatch(s, @"^[0-9a-zA-Z.()\+\-*/]") || (s[0]>='0'&&s[0]<='9' && Regex.IsMatch(s,@"^[a-zA-Z]") && !Double.TryParse(s, out i)))
+                {
+                    throw new FormulaFormatException(s);
+                }
+                //Console.WriteLine(s);
                 listTokens.Add(s);
             }
 
@@ -128,7 +134,8 @@ namespace Formulas
             double resultValue = 0.0;
             foreach(string s in tokens)
             {
-                if (Regex.IsMatch(s, @"^[0-9e.]"))
+                double temp = 0;
+                if (Double.TryParse(s, out temp))
                 {
                     double currValue = Convert.ToDouble(s);
                     //If* or / is at the top of the operator stack, pop the value stack, pop the operator stack, 
@@ -141,6 +148,7 @@ namespace Formulas
                         }
                         else
                         {
+                            if(currValue == 0) { throw new FormulaEvaluationException(s); }
                             resultValue = value.Pop() / currValue;
                         }
                         value.Push(resultValue);
@@ -170,6 +178,7 @@ namespace Formulas
                         }
                         else
                         {
+                            if (currValue == 0) { throw new FormulaEvaluationException(s); }
                             resultValue = value.Pop() / currValue;
                         }
                         value.Push(resultValue);
@@ -246,6 +255,7 @@ namespace Formulas
                         }
                         else
                         {
+                            if (right == 0) { throw new FormulaEvaluationException(s); }
                             value.Push(left / right);
                         }
                     }

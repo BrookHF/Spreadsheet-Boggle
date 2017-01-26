@@ -140,6 +140,82 @@ namespace FormulaTestCases
         }
 
         /// <summary>
+        /// Here, the delegate passed to Evaluate always throws a
+        /// UndefinedVariableException (meaning that no variables have
+        /// values).  The test case checks that the result of
+        /// evaluating the Formula is a FormulaEvaluationException.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaEvaluationException))]
+        public void Evaluate6()
+        {
+            Formula f = new Formula("x + y * y1 ");
+            f.Evaluate(v => { throw new UndefinedVariableException(v); });
+        }
+
+        /// <summary>
+        /// This uses one of each kind of token.
+        /// </summary>
+        [TestMethod]
+        public void Evaluate7()
+        {
+            Formula f = new Formula("x + y * ((z / x) * 1.0)");
+            Assert.AreEqual(f.Evaluate(Lookup4), 16.0, 1e-6);
+        }
+
+        /// <summary>
+        /// This uses one of each kind of token.
+        /// </summary>
+        [TestMethod]
+        public void Evaluate8()
+        {
+            Formula f = new Formula("2.2e3/100");
+            Assert.AreEqual(f.Evaluate(Lookup4), 22.0, 1e-6);
+        }
+
+        /// <summary>
+        /// This uses one of each kind of token.
+        /// </summary>
+        [TestMethod]
+        public void Evaluate9()
+        {
+            Formula f = new Formula("x + i * ((z / i) * 1.0)");
+            Assert.AreEqual(f.Evaluate(Lookup4), 12.0, 1e-6);
+        }
+
+        /// <summary>
+        /// This uses one of each kind of token.
+        /// </summary>
+        [TestMethod]
+        public void Evaluate10()
+        {
+            Formula f = new Formula("e23 + 12");
+            Assert.AreEqual(f.Evaluate(v=>8.0), 20.0, 1e-6);
+        }
+
+        /// <summary>
+        /// This uses one of each kind of token.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Evaluate11()
+        {
+            Formula f = new Formula("3er3 + 12");
+            Assert.AreEqual(f.Evaluate(v => 8.0), 20.0, 1e-6);
+        }
+
+        /// <summary>
+        /// This uses one of each kind of token.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaEvaluationException))]
+        public void Evaluate12()
+        {
+            Formula f = new Formula("e23/0");
+            Assert.AreEqual(f.Evaluate(v => 8.0), 20.0, 1e-6);
+        }
+
+        /// <summary>
         /// A Lookup method that maps x to 4.0, y to 6.0, and z to 8.0.
         /// All other variables result in an UndefinedVariableException.
         /// </summary>
@@ -152,6 +228,7 @@ namespace FormulaTestCases
                 case "x": return 4.0;
                 case "y": return 6.0;
                 case "z": return 8.0;
+                case "i": return 3e2;
                 default: throw new UndefinedVariableException(v);
             }
         }
