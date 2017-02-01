@@ -48,11 +48,14 @@ namespace Dependencies
     /// </summary>
     public class DependencyGraph
     {
+
+        private Dictionary<string, List<string>> graph;
         /// <summary>
         /// Creates a DependencyGraph containing no dependencies.
         /// </summary>
         public DependencyGraph()
         {
+            graph = new Dictionary<string, List<string>>();
         }
 
         /// <summary>
@@ -60,7 +63,7 @@ namespace Dependencies
         /// </summary>
         public int Size
         {
-            get { return 0; }
+            get { return graph.Count; }
         }
 
         /// <summary>
@@ -68,7 +71,9 @@ namespace Dependencies
         /// </summary>
         public bool HasDependents(string s)
         {
-            return false;
+            List<string> tempList;
+            if(!graph.TryGetValue(s, out tempList)) { return false; }
+            return tempList.Count != 0;
         }
 
         /// <summary>
@@ -76,7 +81,8 @@ namespace Dependencies
         /// </summary>
         public bool HasDependees(string s)
         {
-            return false;
+
+            return graph.ContainsKey(s);
         }
 
         /// <summary>
