@@ -14,8 +14,8 @@ namespace TestMain
         public delegate double Lookup(string var);
         static void Main(string[] args)
         {
-           Formula f = new Formula("1+3d * 44");
-            Console.WriteLine(f.Evaluate(v => 3.0));
+            Formula f = new Formula("(5 + x) / (y - 3)");
+            f.Evaluate(s => 3);
             //Lookup look = Lookup4;
             //Console.WriteLine(look("x"));
             //Console.WriteLine(Regex.IsMatch("x", @"^[a-zA-Z0-9]+$"));
@@ -24,7 +24,7 @@ namespace TestMain
             //Console.WriteLine(i);
             //Console.WriteLine(Double.TryParse("e4", out i));
             //Console.WriteLine(i);
-            
+
 
             while (true) ;
         }

@@ -235,7 +235,7 @@ namespace Formulas
                         {
                             value.Push(left - right);
                         }
-                        Console.WriteLine(ope.Peek()+value.Peek());
+                        //Console.WriteLine(ope.Peek()+value.Peek());
                     }
 
                     //Whether or not you did the first step, the top of the operator stack will be a (. Pop it.
