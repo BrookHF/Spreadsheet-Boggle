@@ -49,13 +49,49 @@ namespace Dependencies
     public class DependencyGraph
     {
 
-        private Dictionary<string, List<string>> graph;
+        /// <summary>
+        /// The DependencyGraphNode is a vertax class that represent one variable. 
+        /// It contains one verable's dependents and dependees.
+        /// The dependents and dependees are represented by points inorder to save memery space, and 
+        /// making it easier to modify dependees and dependents because they are stored in different
+        /// node.
+        /// </summary>
+
+        private class DependencyGraphNode
+        {
+            // variable's name
+            public string name { get;}
+
+            // variable's dependents
+            public List<DependencyGraphNode> dependent { get; }
+
+            // vairable's dependees
+            public List<DependencyGraphNode> dependee { get; }
+
+            // default constructor
+            public DependencyGraphNode(string name)
+            {
+                this.name = name;
+                dependee = new List<DependencyGraphNode>();
+                dependent = new List<DependencyGraphNode>();
+            }
+
+        }
+
+        /// <summary>
+        /// DependencyGraphNodes are stored in dirctonary dependencyGraph in order to have constant
+        /// access time when the number of dependency pairs is large.
+        /// </summary>
+        private Dictionary<string, DependencyGraphNode> dependencyGraph;
+
+        public int size { get; set; }
+
         /// <summary>
         /// Creates a DependencyGraph containing no dependencies.
         /// </summary>
         public DependencyGraph()
         {
-            graph = new Dictionary<string, List<string>>();
+            dependencyGraph = new Dictionary<string, DependencyGraphNode>();
         }
 
         /// <summary>
@@ -63,7 +99,7 @@ namespace Dependencies
         /// </summary>
         public int Size
         {
-            get { return graph.Count; }
+            get { return this.size; }
         }
 
         /// <summary>
@@ -71,9 +107,8 @@ namespace Dependencies
         /// </summary>
         public bool HasDependents(string s)
         {
-            List<string> tempList;
-            if(!graph.TryGetValue(s, out tempList)) { return false; }
-            return tempList.Count != 0;
+            // return false if s does not exist or it does not have any dependent
+            return dependencyGraph.ContainsKey(s) && dependencyGraph[s].dependent.Count != 0;
         }
 
         /// <summary>
@@ -81,8 +116,8 @@ namespace Dependencies
         /// </summary>
         public bool HasDependees(string s)
         {
-
-            return graph.ContainsKey(s);
+            // return false if s does not exist or it does not have any dependee
+            return dependencyGraph.ContainsKey(s) && dependencyGraph[s].dependee.Count != 0;
         }
 
         /// <summary>
@@ -90,7 +125,11 @@ namespace Dependencies
         /// </summary>
         public IEnumerable<string> GetDependents(string s)
         {
-            return null;
+            if (!dependencyGraph.ContainsKey(s)) { yield break; }
+            foreach(DependencyGraphNode node in dependencyGraph[s].dependent)
+            {
+                yield return node.name;
+            }
         }
 
         /// <summary>
@@ -98,7 +137,11 @@ namespace Dependencies
         /// </summary>
         public IEnumerable<string> GetDependees(string s)
         {
-            return null;
+            if (!dependencyGraph.ContainsKey(s)) { yield break; }
+            foreach (DependencyGraphNode node in dependencyGraph[s].dependee)
+            {
+                yield return node.name;
+            }
         }
 
         /// <summary>
@@ -108,6 +151,12 @@ namespace Dependencies
         /// </summary>
         public void AddDependency(string s, string t)
         {
+            if (!dependencyGraph.ContainsKey(s)) { dependencyGraph.Add(s, new DependencyGraphNode(s)); }
+            if (!dependencyGraph.ContainsKey(t)) { dependencyGraph.Add(t, new DependencyGraphNode(t)); }
+            dependencyGraph[s].dependent.Add(dependencyGraph[t]);
+            dependencyGraph[t].dependee.Add(dependencyGraph[s]);
+            // increaement size
+            this.size++;
         }
 
         /// <summary>
@@ -117,6 +166,13 @@ namespace Dependencies
         /// </summary>
         public void RemoveDependency(string s, string t)
         {
+            if(dependencyGraph.ContainsKey(s) && dependencyGraph.ContainsKey(t))
+            {
+                dependencyGraph[t].dependee.Remove(dependencyGraph[s]);
+                dependencyGraph[s].dependent.Remove(dependencyGraph[t]);
+                // decreaement of size
+                this.size--;
+            }
         }
 
         /// <summary>
@@ -126,6 +182,17 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
+            // delete dependency
+            foreach (DependencyGraphNode node in dependencyGraph[s].dependent)
+            {
+                this.RemoveDependency(s, node.name);
+            }
+
+            // add new dependency (s,t)
+            foreach(string str in newDependents)
+            {
+                AddDependency(s,str);
+            }
         }
 
         /// <summary>
@@ -135,6 +202,17 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependees(string t, IEnumerable<string> newDependees)
         {
+            // delete dependency from r
+            foreach (DependencyGraphNode node in dependencyGraph[t].dependee)
+            {
+                this.RemoveDependency(node.name, t);
+            }
+
+            // add new dependency (s,t)
+            foreach (string str in newDependees)
+            {
+                AddDependency(str, t);
+            }
         }
     }
 }

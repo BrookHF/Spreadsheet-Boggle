@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dependencies;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,32 +14,21 @@ namespace ConsoleApplication1
 
         static void Main(string[] args)
         {
-            Dictionary<string, List<string>> hashMap = new Dictionary<string, List<string>>();
-            List<string> tempList = new List<string>();
-            List<string> list1 = new List<string>();
-            tempList.Add("c");
-            hashMap.Add("d",tempList);
+            DependencyGraph test = new DependencyGraph();
+            //string[] str = { "b", "d" };
+            //int index = 0;
+            test.AddDependency("b", "a");
+            test.AddDependency("c", "a");
+            test.AddDependency("d", "a");
 
-            
-            Console.WriteLine(hashMap.TryGetValue("c", out list1));
+            //Console.WriteLine(str[0]);
+            //Console.WriteLine(str[1]);
+            Console.WriteLine(test.Size);
+
+            //Console.WriteLine(hashMap.TryGetValue("c", out list1));
             while (true) ;
 
 
         }
-
-
-        class Dependency
-        {
-            public string _name { get; set; }
-            public List<string> _depend { get; set; }
-
-            public Dependency(string name, List<string> depend)
-            {
-                _name = name;
-                _depend = depend;
-            }
-        }
     }
-
-    
 }
