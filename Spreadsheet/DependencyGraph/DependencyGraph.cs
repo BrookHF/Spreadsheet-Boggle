@@ -84,8 +84,6 @@ namespace Dependencies
         /// </summary>
         private Dictionary<string, DependencyGraphNode> dependencyGraph;
 
-
-
         /// <summary>
         /// Creates a DependencyGraph containing no dependencies.
         /// </summary>

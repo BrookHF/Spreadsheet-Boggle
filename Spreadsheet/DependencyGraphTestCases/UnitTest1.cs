@@ -382,5 +382,186 @@ namespace DependencyGraphTestCases
             Assert.AreEqual(1, test.Size);
             Assert.IsTrue(test.HasDependees("b"));
         }
+
+        /// <summary>
+        /// test has dependee with remove dependency
+        /// </summary>
+        [TestMethod]
+        public void TestMethod26()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.AddDependency("b", "a");
+            test.RemoveDependency("b", "a");
+            Assert.AreEqual(0, test.Size);
+            Assert.IsFalse(test.HasDependees("a"));
+        }
+
+        /// <summary>
+        /// test has dependent with remove dependency
+        /// </summary>
+        [TestMethod]
+        public void TestMethod27()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.AddDependency("b", "a");
+            test.RemoveDependency("b", "a");
+            Assert.AreEqual(0, test.Size);
+            Assert.IsFalse(test.HasDependents("b"));
+        }
+
+        /// <summary>
+        /// stress test with replace dependent
+        /// </summary>
+        [TestMethod]
+        public void TestMethod28()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.AddDependency("b", "a");
+            List<String> list = new List<string>();
+            for(int i=0; i<10000; i++)
+            {
+                list.Add(i.ToString());
+            }
+            IEnumerable<string> enumerable = list;
+            test.ReplaceDependents("b", enumerable);
+            int index = 0;
+           
+            foreach (string str in test.GetDependents("b"))
+            {
+                Assert.AreEqual(str, list[index++]);
+            }
+
+            Assert.AreEqual(test.Size, list.Count);
+        }
+
+        /// <summary>
+        /// stress test with replace dependee
+        /// </summary>
+        [TestMethod]
+        public void TestMethod29()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.AddDependency("b", "a");
+            List<String> list = new List<string>();
+            for (int i = 0; i < 10000; i++)
+            {
+                list.Add(i.ToString());
+            }
+            IEnumerable<string> enumerable = list;
+            test.ReplaceDependees("a", enumerable);
+            int index = 0;
+
+            foreach (string str in test.GetDependees("a"))
+            {
+                Assert.AreEqual(str, list[index++]);
+            }
+
+            Assert.AreEqual(test.Size, list.Count);
+        }
+
+        /// <summary>
+        /// stress test with add dependency
+        /// </summary>
+        [TestMethod]
+        public void TestMethod30()
+        {
+            DependencyGraph test = new DependencyGraph();
+            List<String> list = new List<string>();
+            for (int i = 0; i < 10000; i++)
+            {
+                test.AddDependency("b", i.ToString());
+                list.Add(i.ToString());
+            }
+
+            int index = 0;
+
+            foreach (string str in test.GetDependents("b"))
+            {
+                Assert.AreEqual(str, list[index++]);
+            }
+
+            Assert.AreEqual(test.Size, list.Count);
+        }
+
+        /// <summary>
+        /// stress test with remove dependency
+        /// </summary>
+        [TestMethod]
+        public void TestMethod31()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.AddDependency("b", "y");
+            for (int i = 0; i < 10000; i++)
+            {
+                test.AddDependency("b", i.ToString());
+            }
+
+            for (int i = 0; i < 10000; i++)
+            {
+                test.RemoveDependency("b", i.ToString());
+            }
+
+            Assert.AreEqual(test.Size, 1);
+        }
+
+        /// <summary>
+        /// test replace dependent with empty enumerable
+        /// </summary>
+        [TestMethod]
+        public void TestMethod32()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.AddDependency("b", "y");
+            test.AddDependency("b", "x");
+            List<string> list = new List<string>();
+            IEnumerable<string> enumerable = list;
+            test.ReplaceDependents("b", enumerable);
+
+            Assert.AreEqual(test.Size, 0);
+            Assert.IsFalse(test.HasDependents("b"));
+        }
+
+        /// <summary>
+        /// test replace dependee with empty enumerable
+        /// </summary>
+        [TestMethod]
+        public void TestMethod33()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.AddDependency("b", "y");
+            test.AddDependency("b", "x");
+            List<string> list = new List<string>();
+            IEnumerable<string> enumerable = list;
+            test.ReplaceDependees("x", enumerable);
+
+            Assert.AreEqual(test.Size, 1);
+            Assert.IsFalse(test.HasDependees("x"));
+        }
+
+        /// <summary>
+        /// test has dependent when vertas not exist
+        /// </summary>
+        [TestMethod]
+        public void TestMethod34()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.AddDependency("b", "y");
+            test.AddDependency("b", "x");
+
+            Assert.IsFalse(test.HasDependees("g"));
+        }
+
+        /// <summary>
+        /// test has dependee when vertas not exist
+        /// </summary>
+        [TestMethod]
+        public void TestMethod35()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.AddDependency("b", "y");
+            test.AddDependency("b", "x");
+
+            Assert.IsFalse(test.HasDependents("g"));
+        }
     }
 }
