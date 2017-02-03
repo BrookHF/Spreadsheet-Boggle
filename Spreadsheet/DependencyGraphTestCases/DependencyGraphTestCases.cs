@@ -1,4 +1,9 @@
-﻿using Dependencies;
+﻿// CS 3500 PS3 dependency graph test cases
+// 
+// Fang He u0908942
+// 2.2.2017
+
+using Dependencies;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -6,7 +11,7 @@ using System.Collections.Generic;
 namespace DependencyGraphTestCases
 {
     [TestClass]
-    public class UnitTest1
+    public class DependencyGraphTestCases
     {
         /// <summary>
         /// test constructing graph

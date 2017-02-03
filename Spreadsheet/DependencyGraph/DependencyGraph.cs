@@ -1,4 +1,9 @@
 ﻿// Skeleton implementation written by Joe Zachary for CS 3500, January 2017.
+// CS 3500 PS3 dependency graph
+// 
+// Fang He u0908942
+// 2.2.2017
+
 
 using System;
 using System.Collections.Generic;
