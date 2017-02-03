@@ -54,7 +54,6 @@ namespace Formulas
                 {
                     throw new FormulaFormatException(s);
                 }
-                //Console.WriteLine(s);
                 listTokens.Add(s);
             }
 
@@ -157,7 +156,6 @@ namespace Formulas
                     //Otherwise, push t onto the value stack
                     else
                     {
-                        Console.WriteLine(currValue);
                         value.Push(currValue);
                     }
                 }
@@ -165,7 +163,6 @@ namespace Formulas
                 else if (Regex.IsMatch(s, @"^[a-zA-Z0-9]+$"))
                 {
                     double currValue;
-                    //Console.WriteLine(s);
                     try { currValue = lookup(s); }
                     catch (UndefinedVariableException e) {
                         throw new FormulaEvaluationException(s);
@@ -235,7 +232,6 @@ namespace Formulas
                         {
                             value.Push(left - right);
                         }
-                        //Console.WriteLine(ope.Peek()+value.Peek());
                     }
 
                     //Whether or not you did the first step, the top of the operator stack will be a (. Pop it.
@@ -263,13 +259,8 @@ namespace Formulas
             }
 
 
-            //Console.WriteLine("value: " + value.Count);
-            //Console.WriteLine("operator: " + ope.Count);
-            //Console.WriteLine("value1: " + value.Peek());
-
             if (ope.Count == 0)
             {
-                //Console.WriteLine("return");
                 return value.Pop();
             }
             else if(value.Count > 1)

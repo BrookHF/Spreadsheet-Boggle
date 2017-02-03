@@ -14,7 +14,7 @@ namespace TestMain
         public delegate double Lookup(string var);
         static void Main(string[] args)
         {
-            Formula f = new Formula("(5 + x) / (y - 3)");
+            Formula f = new Formula("(5 + x) / (3 * 2 - 12 / 2)");
             f.Evaluate(s => 3);
             //Lookup look = Lookup4;
             //Console.WriteLine(look("x"));
