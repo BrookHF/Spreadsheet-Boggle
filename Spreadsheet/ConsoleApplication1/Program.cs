@@ -15,19 +15,24 @@ namespace ConsoleApplication1
         static void Main(string[] args)
         {
             DependencyGraph test = new DependencyGraph();
-            //string[] str = { "b", "d" };
-            //int index = 0;
+            List<string> list = new List<string>();
+            list.Add("1");
+            list.Add("2");
+            list.Add("3");
+            IEnumerable<string> replace = list;
             test.AddDependency("b", "a");
             test.AddDependency("c", "a");
             test.AddDependency("d", "a");
+            test.ReplaceDependees("a", replace);
+            IEnumerable<string> enumerable = test.GetDependees("a");
 
-            //Console.WriteLine(str[0]);
-            //Console.WriteLine(str[1]);
-            Console.WriteLine(test.Size);
-
-            //Console.WriteLine(hashMap.TryGetValue("c", out list1));
+            //string[] str = { "1", "2", "3" };
+            //int index = 0;
+            foreach (string s2 in enumerable)
+            {
+                Console.WriteLine(s2);
+            }
             while (true) ;
-
 
         }
     }

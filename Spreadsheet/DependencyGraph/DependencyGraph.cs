@@ -62,18 +62,18 @@ namespace Dependencies
             // variable's name
             public string name { get;}
 
-            // variable's dependents
-            public List<DependencyGraphNode> dependent { get; }
+            // variable's dependents using hashset to avoid duplicates, and fast access
+            public HashSet<DependencyGraphNode> dependent { get; }
 
-            // vairable's dependees
-            public List<DependencyGraphNode> dependee { get; }
+            // vairable's dependees using hashset to avoid duplicates, and fast access
+            public HashSet<DependencyGraphNode> dependee { get; }
 
             // default constructor
             public DependencyGraphNode(string name)
             {
                 this.name = name;
-                dependee = new List<DependencyGraphNode>();
-                dependent = new List<DependencyGraphNode>();
+                dependee = new HashSet<DependencyGraphNode>();
+                dependent = new HashSet<DependencyGraphNode>();
             }
 
         }
@@ -99,7 +99,6 @@ namespace Dependencies
         /// <summary>
         /// Instant variable for Size. Keep track of the number of dependency pair.
         /// </summary>
-
         private int size;
 
         /// <summary>
@@ -166,16 +165,22 @@ namespace Dependencies
         /// </summary>
         public void AddDependency(string s, string t)
         {
-            // add the variable into graph if not already exist
+            // add the vertax into graph if not already exist
             if (!dependencyGraph.ContainsKey(s)) { dependencyGraph.Add(s, new DependencyGraphNode(s)); }
             if (!dependencyGraph.ContainsKey(t)) { dependencyGraph.Add(t, new DependencyGraphNode(t)); }
 
-            // add dependency pair in two of the nodes
-            dependencyGraph[s].dependent.Add(dependencyGraph[t]);
-            dependencyGraph[t].dependee.Add(dependencyGraph[s]);
+            // only add dependency if it is not yet exist
+            if(!dependencyGraph[s].dependee.Contains(dependencyGraph[t]) 
+                && !dependencyGraph[t].dependee.Contains(dependencyGraph[s]))
+            {
+                // add dependency pair in two of the nodes
+                dependencyGraph[s].dependent.Add(dependencyGraph[t]);
+                dependencyGraph[t].dependee.Add(dependencyGraph[s]);
+
+                // increaement number of dependency pairs
+                this.Size++;
+            }
             
-            // increaement number of dependency pairs
-            this.Size++;
         }
 
         /// <summary>
@@ -204,14 +209,22 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
-            // delete all dependency pair for s
-            foreach (DependencyGraphNode node in dependencyGraph[s].dependent)
+            // only delete if vertex s exist because s not have any dependents if not exist
+            if (dependencyGraph.ContainsKey(s))
             {
-                this.RemoveDependency(s, node.name);
+                // delete dependency from s's dependees
+                foreach (DependencyGraphNode node in dependencyGraph[s].dependent)
+                {
+                    node.dependee.Remove(dependencyGraph[s]);
+                    this.size--; // decreaement of number of dependency pairs
+                }
+                // delete s's dependents
+                dependencyGraph[s].dependent.Clear();
             }
+            
 
             // add new dependency pairs from enumerable
-            foreach(string str in newDependents)
+            foreach (string str in newDependents)
             {
                 AddDependency(s,str);
             }
@@ -224,16 +237,22 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependees(string t, IEnumerable<string> newDependees)
         {
-            // delete dependency in t
-            foreach (DependencyGraphNode node in dependencyGraph[t].dependee)
+            // only delete if vertex s exist because s not have any dependents if not exist
+            if (dependencyGraph.ContainsKey(t))
             {
-                this.RemoveDependency(node.name, t);
+                // delete dependency from t's dependents
+                foreach (DependencyGraphNode node in dependencyGraph[t].dependee)
+                {
+                    node.dependent.Remove(dependencyGraph[t]);
+                    this.size--; // decreaement of number of dependency pairs
+                }
+                // delete t's dependees
+                dependencyGraph[t].dependee.Clear();
             }
-
             // add new dependency from enumerable
             foreach (string str in newDependees)
             {
-                AddDependency(str, t);
+                this.AddDependency(str, t);
             }
         }
     }
