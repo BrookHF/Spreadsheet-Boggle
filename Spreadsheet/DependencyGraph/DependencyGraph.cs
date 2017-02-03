@@ -57,9 +57,9 @@ namespace Dependencies
         /// <summary>
         /// The DependencyGraphNode is a vertax class that represent one variable. 
         /// It contains one verable's dependents and dependees.
-        /// The dependents and dependees are represented by points inorder to save memery space, and 
-        /// making it easier to modify dependees and dependents because they are stored in different
-        /// node.
+        /// The dependents and dependees are represented by points to other vertex in order to save memery 
+        /// space beacause string can be very long, and making it easier to modify dependees and dependents 
+        /// because they are stored in different node.
         /// </summary>
 
         private class DependencyGraphNode
