@@ -84,15 +84,23 @@ namespace Dependencies
         /// </summary>
         private Dictionary<string, DependencyGraphNode> dependencyGraph;
 
-        public int size { get; set; }
+
 
         /// <summary>
         /// Creates a DependencyGraph containing no dependencies.
         /// </summary>
         public DependencyGraph()
         {
-            dependencyGraph = new Dictionary<string, DependencyGraphNode>();
+            //initialize number of dependency pairs and graph.
+            this.size = 0;  
+            this.dependencyGraph = new Dictionary<string, DependencyGraphNode>(); 
         }
+
+        /// <summary>
+        /// Instant variable for Size. Keep track of the number of dependency pair.
+        /// </summary>
+
+        private int size;
 
         /// <summary>
         /// The number of dependencies in the DependencyGraph.
@@ -100,6 +108,7 @@ namespace Dependencies
         public int Size
         {
             get { return this.size; }
+            set { this.size = value; }
         }
 
         /// <summary>
@@ -125,8 +134,11 @@ namespace Dependencies
         /// </summary>
         public IEnumerable<string> GetDependents(string s)
         {
-            if (!dependencyGraph.ContainsKey(s)) { yield break; }
-            foreach(DependencyGraphNode node in dependencyGraph[s].dependent)
+            // don't output anything if the parameter passed in don't exist in the graph, or don't have any dependent
+            if (!dependencyGraph.ContainsKey(s)||dependencyGraph[s].dependent.Count==0) { yield break; }
+
+            // output dependents as enumerable
+            foreach (DependencyGraphNode node in dependencyGraph[s].dependent)
             {
                 yield return node.name;
             }
@@ -137,7 +149,10 @@ namespace Dependencies
         /// </summary>
         public IEnumerable<string> GetDependees(string s)
         {
-            if (!dependencyGraph.ContainsKey(s)) { yield break; }
+            // don't output anything if the parameter passed in don't exist in the graph, or don't have any dependee
+            if (!dependencyGraph.ContainsKey(s) || dependencyGraph[s].dependee.Count == 0) { yield break; }
+
+            // output dependees as enumerable
             foreach (DependencyGraphNode node in dependencyGraph[s].dependee)
             {
                 yield return node.name;
@@ -151,12 +166,16 @@ namespace Dependencies
         /// </summary>
         public void AddDependency(string s, string t)
         {
+            // add the variable into graph if not already exist
             if (!dependencyGraph.ContainsKey(s)) { dependencyGraph.Add(s, new DependencyGraphNode(s)); }
             if (!dependencyGraph.ContainsKey(t)) { dependencyGraph.Add(t, new DependencyGraphNode(t)); }
+
+            // add dependency pair in two of the nodes
             dependencyGraph[s].dependent.Add(dependencyGraph[t]);
             dependencyGraph[t].dependee.Add(dependencyGraph[s]);
-            // increaement size
-            this.size++;
+            
+            // increaement number of dependency pairs
+            this.Size++;
         }
 
         /// <summary>
@@ -166,12 +185,15 @@ namespace Dependencies
         /// </summary>
         public void RemoveDependency(string s, string t)
         {
+            // only remove the dependency pair exist
             if(dependencyGraph.ContainsKey(s) && dependencyGraph.ContainsKey(t))
             {
+                // remove from dependent and dependee
                 dependencyGraph[t].dependee.Remove(dependencyGraph[s]);
                 dependencyGraph[s].dependent.Remove(dependencyGraph[t]);
-                // decreaement of size
-                this.size--;
+                
+                // decreaement of number of dependency pair
+                this.Size--;
             }
         }
 
@@ -182,13 +204,13 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
-            // delete dependency
+            // delete all dependency pair for s
             foreach (DependencyGraphNode node in dependencyGraph[s].dependent)
             {
                 this.RemoveDependency(s, node.name);
             }
 
-            // add new dependency (s,t)
+            // add new dependency pairs from enumerable
             foreach(string str in newDependents)
             {
                 AddDependency(s,str);
@@ -202,13 +224,13 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependees(string t, IEnumerable<string> newDependees)
         {
-            // delete dependency from r
+            // delete dependency in t
             foreach (DependencyGraphNode node in dependencyGraph[t].dependee)
             {
                 this.RemoveDependency(node.name, t);
             }
 
-            // add new dependency (s,t)
+            // add new dependency from enumerable
             foreach (string str in newDependees)
             {
                 AddDependency(str, t);

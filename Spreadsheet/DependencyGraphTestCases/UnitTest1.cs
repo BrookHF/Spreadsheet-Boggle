@@ -34,7 +34,7 @@ namespace DependencyGraphTestCases
         public void TestMethod3()
         {
             DependencyGraph test = new DependencyGraph();
-            Assert.AreEqual(test.size, 0);
+            Assert.AreEqual(test.Size, 0);
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace DependencyGraphTestCases
             DependencyGraph test = new DependencyGraph();
             test.AddDependency("a", "b");
             test.RemoveDependency("a", "b");
-            Assert.AreEqual(test.size, 0);
+            Assert.AreEqual(test.Size, 0);
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace DependencyGraphTestCases
             DependencyGraph test = new DependencyGraph();
             test.AddDependency("a", "b");
             test.RemoveDependency("a", "c");
-            Assert.AreEqual(test.size, 1);
+            Assert.AreEqual(test.Size, 1);
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace DependencyGraphTestCases
             DependencyGraph test = new DependencyGraph();
             test.AddDependency("a", "b");
             test.RemoveDependency("a", "c");
-            Assert.AreEqual(test.size, 1);
+            Assert.AreEqual(test.Size, 1);
         }
 
         /// <summary>
@@ -232,7 +232,5 @@ namespace DependencyGraphTestCases
             }
             Assert.AreEqual(2, test.Size);
         }
-
-
     }
 }
