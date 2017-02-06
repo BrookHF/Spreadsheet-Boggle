@@ -173,7 +173,7 @@ namespace Dependencies
             if (!dependencyGraph.ContainsKey(t)) { dependencyGraph.Add(t, new DependencyGraphNode(t)); }
 
             // only add dependency if it is not yet exist
-            if(!dependencyGraph[s].dependee.Contains(dependencyGraph[t]) 
+            if(!dependencyGraph[s].dependent.Contains(dependencyGraph[t]) 
                 && !dependencyGraph[t].dependee.Contains(dependencyGraph[s]))
             {
                 // add dependency pair in two of the nodes
