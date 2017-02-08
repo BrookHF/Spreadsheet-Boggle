@@ -253,7 +253,6 @@ namespace Formulas
                         }
                         else
                         {
-                            Console.WriteLine("did" + left);
                             if (right == 0) { throw new FormulaEvaluationException(s); }
                             value.Push(left / right);
                         }
