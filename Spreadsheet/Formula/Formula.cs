@@ -54,6 +54,7 @@ namespace Formulas
                 {
                     throw new FormulaFormatException(s);
                 }
+
                 listTokens.Add(s);
             }
 
@@ -101,7 +102,8 @@ namespace Formulas
             {
                 // Any token that immediately follows an opening parenthesis or an operator must be either a number, 
                 // a variable, or an opening parenthesis.
-                if (Regex.IsMatch(listTokens[i], @"^[(\-\+*/(]+$")&& !Regex.IsMatch(listTokens[i+1], @"^[a-zA-Z0-9.(]+$"))
+                double tryInt;
+                if (Regex.IsMatch(listTokens[i], @"^[(\-\+*/(]+$") && !Regex.IsMatch(listTokens[i+1], @"^[a-zA-Z0-9.(]+$") && !double.TryParse(listTokens[i + 1], out tryInt))
                 {
                     throw new FormulaFormatException("Formular token immediately follows an opening parenthesis or an operator must be either a number, a variable, or an opening parenthesis");
                 }
@@ -193,8 +195,8 @@ namespace Formulas
                     //Apply the popped operator to the popped numbers. Push the result onto the value stack.
                     if (ope.Count>0 && (ope.Peek().Equals("+") || ope.Peek().Equals("-")))
                     {
-                        double left = value.Pop();
                         double right = value.Pop();
+                        double left = value.Pop();
 
                         if (ope.Pop().Equals("+"))
                         {
@@ -221,8 +223,8 @@ namespace Formulas
                     //Apply the popped operator to the popped numbers. Push the result onto the value stack.
                     if (ope.Peek().Equals("+") || ope.Peek().Equals("-"))
                     {
-                        double left = value.Pop();
                         double right = value.Pop();
+                        double left = value.Pop();
 
                         if (ope.Pop().Equals("+"))
                         {
@@ -240,10 +242,10 @@ namespace Formulas
                     //After you have completed the previous step, if * or / is at the top of the operator stack, pop the 
                     //value stack twice and the operator stack once. Apply the popped operator to the popped numbers. 
                     //Push the result onto the value stack.
-                    if(value.Count>1&&(ope.Peek().Equals("*")|| ope.Peek().Equals("/")))
+                    if(value.Count>1&&(ope.Peek().Equals("*") || ope.Peek().Equals("/")))
                     {
-                        double left = value.Pop();
                         double right = value.Pop();
+                        double left = value.Pop();
 
                         if (ope.Pop().Equals("*"))
                         {
@@ -251,6 +253,7 @@ namespace Formulas
                         }
                         else
                         {
+                            Console.WriteLine("did" + left);
                             if (right == 0) { throw new FormulaEvaluationException(s); }
                             value.Push(left / right);
                         }
@@ -265,8 +268,8 @@ namespace Formulas
             }
             else if(value.Count > 1)
             {
-                double left = value.Pop();
                 double right = value.Pop();
+                double left = value.Pop();
 
                 if (ope.Pop().Equals("+"))
                 {

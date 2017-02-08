@@ -14,16 +14,9 @@ namespace TestMain
         public delegate double Lookup(string var);
         static void Main(string[] args)
         {
-            Formula f = new Formula("(5 + x) / (3 * 2 - 12 / 2)");
-            f.Evaluate(s => 3);
-            //Lookup look = Lookup4;
-            //Console.WriteLine(look("x"));
-            //Console.WriteLine(Regex.IsMatch("x", @"^[a-zA-Z0-9]+$"));
-            //Console.WriteLine(1.0 / 0);
-            //double i=3;
-            //Console.WriteLine(i);
-            //Console.WriteLine(Double.TryParse("e4", out i));
-            //Console.WriteLine(i);
+            Formula f = new Formula("(7e-5+b-c)");
+            //"(((((2+3*a)/(7e-5+b-c))*d+.0005e+92)-8.2)*3.14159) * ((e+3.1)-.00000000008)"
+            //Console.WriteLine((double)f.Evaluate(s => (s == "x") ? 1 : 4));
 
 
             while (true) ;
