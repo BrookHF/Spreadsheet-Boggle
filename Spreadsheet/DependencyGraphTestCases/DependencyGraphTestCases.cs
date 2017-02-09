@@ -568,5 +568,304 @@ namespace DependencyGraphTestCases
 
             Assert.IsFalse(test.HasDependents("g"));
         }
+
+
+        /// <summary>
+        /// test new constructor
+        /// </summary>
+        [TestMethod()]
+        public void ConstructorTest1()
+        {
+            // Dependency graph
+            DependencyGraph old = new DependencyGraph();
+
+            // A bunch of strings to use
+            const int SIZE = 100;
+            string[] letters = new string[SIZE];
+            for (int i = 0; i < SIZE; i++)
+            {
+                letters[i] = ("" + (char)('a' + i));
+            }
+
+            // The correct answers
+            HashSet<string>[] dents = new HashSet<string>[SIZE];
+            HashSet<string>[] dees = new HashSet<string>[SIZE];
+            for (int i = 0; i < SIZE; i++)
+            {
+                dents[i] = new HashSet<string>();
+                dees[i] = new HashSet<string>();
+            }
+
+            // Add a bunch of dependencies
+            for (int i = 0; i < SIZE; i++)
+            {
+                for (int j = i + 1; j < SIZE; j++)
+                {
+                    old.AddDependency(letters[i], letters[j]);
+                    dents[i].Add(letters[j]);
+                    dees[j].Add(letters[i]);
+                }
+            }
+
+            // use constructor to make a clone of old one
+            DependencyGraph t = new DependencyGraph(old);
+
+            // Remove a bunch of dependencies
+            for (int i = 0; i < SIZE; i++)
+            {
+                for (int j = i + 4; j < SIZE; j += 4)
+                {
+                    t.RemoveDependency(letters[i], letters[j]);
+                    dents[i].Remove(letters[j]);
+                    dees[j].Remove(letters[i]);
+                }
+            }
+
+            // Add some back
+            for (int i = 0; i < SIZE; i++)
+            {
+                for (int j = i + 1; j < SIZE; j += 2)
+                {
+                    t.AddDependency(letters[i], letters[j]);
+                    dents[i].Add(letters[j]);
+                    dees[j].Add(letters[i]);
+                }
+            }
+
+            // Remove some more
+            for (int i = 0; i < SIZE; i += 2)
+            {
+                for (int j = i + 3; j < SIZE; j += 3)
+                {
+                    t.RemoveDependency(letters[i], letters[j]);
+                    dents[i].Remove(letters[j]);
+                    dees[j].Remove(letters[i]);
+                }
+            }
+
+            // Make sure everything is right
+            for (int i = 0; i < SIZE; i++)
+            {
+                Assert.IsTrue(dents[i].SetEquals(new HashSet<string>(t.GetDependents(letters[i]))));
+                Assert.IsTrue(dees[i].SetEquals(new HashSet<string>(t.GetDependees(letters[i]))));
+            }
+        }
+
+        [TestMethod()]
+        public void ConstructorTest2()
+        {
+            // Dependency graph
+            DependencyGraph old = new DependencyGraph();
+
+            // A bunch of strings to use
+            const int SIZE = 100;
+            string[] letters = new string[SIZE];
+            for (int i = 0; i < SIZE; i++)
+            {
+                letters[i] = ("" + (char)('a' + i));
+            }
+
+            // The correct answers
+            HashSet<string>[] dents = new HashSet<string>[SIZE];
+            HashSet<string>[] dees = new HashSet<string>[SIZE];
+            for (int i = 0; i < SIZE; i++)
+            {
+                dents[i] = new HashSet<string>();
+                dees[i] = new HashSet<string>();
+            }
+
+            // Add a bunch of dependencies
+            for (int i = 0; i < SIZE; i++)
+            {
+                for (int j = i + 1; j < SIZE; j++)
+                {
+                    old.AddDependency(letters[i], letters[j]);
+                    dents[i].Add(letters[j]);
+                    dees[j].Add(letters[i]);
+                }
+            }
+
+            // use constructor to make a clone of old one
+            DependencyGraph t = new DependencyGraph(old);
+
+            // Remove a bunch of dependencies
+            for (int i = 0; i < SIZE; i++)
+            {
+                for (int j = i + 2; j < SIZE; j += 3)
+                {
+                    t.RemoveDependency(letters[i], letters[j]);
+                    dents[i].Remove(letters[j]);
+                    dees[j].Remove(letters[i]);
+                }
+            }
+
+            // Replace a bunch of dependents
+            for (int i = 0; i < SIZE; i += 2)
+            {
+                HashSet<string> newDents = new HashSet<String>();
+                for (int j = 0; j < SIZE; j += 5)
+                {
+                    newDents.Add(letters[j]);
+                }
+                t.ReplaceDependents(letters[i], newDents);
+
+                foreach (string s in dents[i])
+                {
+                    dees[s[0] - 'a'].Remove(letters[i]);
+                }
+
+                foreach (string s in newDents)
+                {
+                    dees[s[0] - 'a'].Add(letters[i]);
+                }
+
+                dents[i] = newDents;
+            }
+
+            // Make sure everything is right
+            for (int i = 0; i < SIZE; i++)
+            {
+                Assert.IsTrue(dents[i].SetEquals(new HashSet<string>(t.GetDependents(letters[i]))));
+                Assert.IsTrue(dees[i].SetEquals(new HashSet<string>(t.GetDependees(letters[i]))));
+            }
+        }
+
+        /// <summary>
+        /// test new constructor
+        ///</summary>
+        [TestMethod()]
+        public void ConstructorTest3()
+        {
+            // Dependency graph
+            DependencyGraph old = new DependencyGraph();
+
+            // A bunch of strings to use
+            const int SIZE = 100;
+            string[] letters = new string[SIZE];
+            for (int i = 0; i < SIZE; i++)
+            {
+                letters[i] = ("" + (char)('a' + i));
+            }
+
+            // The correct answers
+            HashSet<string>[] dents = new HashSet<string>[SIZE];
+            HashSet<string>[] dees = new HashSet<string>[SIZE];
+            for (int i = 0; i < SIZE; i++)
+            {
+                dents[i] = new HashSet<string>();
+                dees[i] = new HashSet<string>();
+            }
+
+            // Add a bunch of dependencies
+            for (int i = 0; i < SIZE; i++)
+            {
+                for (int j = i + 1; j < SIZE; j++)
+                {
+                    old.AddDependency(letters[i], letters[j]);
+                    dents[i].Add(letters[j]);
+                    dees[j].Add(letters[i]);
+                }
+            }
+
+            // use constructor to make a clone of old one
+            DependencyGraph t = new DependencyGraph(old);
+
+            // Remove a bunch of dependencies
+            for (int i = 0; i < SIZE; i++)
+            {
+                for (int j = i + 2; j < SIZE; j += 3)
+                {
+                    t.RemoveDependency(letters[i], letters[j]);
+                    dents[i].Remove(letters[j]);
+                    dees[j].Remove(letters[i]);
+                }
+            }
+
+            // Replace a bunch of dependees
+            for (int i = 0; i < SIZE; i += 2)
+            {
+                HashSet<string> newDees = new HashSet<String>();
+                for (int j = 0; j < SIZE; j += 9)
+                {
+                    newDees.Add(letters[j]);
+                }
+                t.ReplaceDependees(letters[i], newDees);
+
+                foreach (string s in dees[i])
+                {
+                    dents[s[0] - 'a'].Remove(letters[i]);
+                }
+
+                foreach (string s in newDees)
+                {
+                    dents[s[0] - 'a'].Add(letters[i]);
+                }
+
+                dees[i] = newDees;
+            }
+
+            // Make sure everything is right
+            for (int i = 0; i < SIZE; i++)
+            {
+                Assert.IsTrue(dents[i].SetEquals(new HashSet<string>(t.GetDependents(letters[i]))));
+                Assert.IsTrue(dees[i].SetEquals(new HashSet<string>(t.GetDependees(letters[i]))));
+            }
+        }
+
+        /// <summary>
+        /// test new constructor
+        /// </summary>
+        [TestMethod]
+        public void ConstructorTest4()
+        {
+            DependencyGraph old = new DependencyGraph();
+            List<String> list = new List<string>();
+            for (int i = 0; i < 10000; i++)
+            {
+                old.AddDependency("b", i.ToString());
+                list.Add(i.ToString());
+            }
+
+            DependencyGraph test = new DependencyGraph(old);
+            int index = 0;
+
+            foreach (string str in test.GetDependents("b"))
+            {
+                Assert.AreEqual(str, list[index++]);
+            }
+
+            Assert.AreEqual(test.Size, list.Count);
+        }
+
+        /// <summary>
+        /// test new constructor
+        /// </summary>
+        [TestMethod]
+        public void ConstructorTest5()
+        {
+            DependencyGraph old = new DependencyGraph();
+            List<String> list = new List<string>();
+            for (int i = 0; i < 1000; i++)
+            {
+                old.AddDependency("b", i.ToString());
+                list.Add(i.ToString());
+            }
+
+            DependencyGraph test = new DependencyGraph(old);
+            for (int i = 0; i < 1000; i+=2)
+            {
+                test.RemoveDependency("b", i.ToString());
+            }
+            
+            int index = 0;
+
+            foreach (string str in old.GetDependents("b"))
+            {
+                Assert.AreEqual(str, list[index++]);
+            }
+
+            Assert.AreEqual(old.Size, list.Count);
+            Assert.AreEqual(test.Size, list.Count/2);
+        }
     }
 }

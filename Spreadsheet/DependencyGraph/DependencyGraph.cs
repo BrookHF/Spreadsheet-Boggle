@@ -107,6 +107,25 @@ namespace Dependencies
         }
 
         /// <summary>
+        /// Creates a DependencyGraph using other dependency graph and they are independent.
+        /// </summary>
+        public DependencyGraph(DependencyGraph otherDependencyGraph)
+        {
+            //initialize number of dependency pairs and graph.
+            this.size = 0;
+
+            //initialize dependency graph dictionary
+            this.dependencyGraph = new Dictionary<string, DependencyGraphNode>();
+
+            //add all dependency pairs in the other dependency graph to this one
+            foreach(string str in otherDependencyGraph.dependencyGraph.Keys)
+            {
+                //get dependents from each node of other dependency graph and put in the new one
+                this.ReplaceDependents(str, otherDependencyGraph.GetDependents(str));
+            }
+        }
+
+        /// <summary>
         /// Instant variable for Size. Keep track of the number of dependency pair.
         /// </summary>
         private int size;
@@ -338,4 +357,6 @@ namespace Dependencies
             }
         }
     }
+
+    
 }
