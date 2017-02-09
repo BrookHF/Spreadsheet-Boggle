@@ -3,6 +3,7 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Formulas;
+using System.Collections.Generic;
 
 namespace FormulaTestCases
 {
@@ -241,7 +242,7 @@ namespace FormulaTestCases
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(FormulaFormatException))]
-        public void newConstructor1()
+        public void NewConstructor1()
         {
             Formula f = new Formula("1+1", s => "2d", s=> true);
         }
@@ -251,7 +252,7 @@ namespace FormulaTestCases
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(FormulaFormatException))]
-        public void newConstructor2()
+        public void NewConstructor2()
         {
             Formula f = new Formula("1+1", s => s, s => (s.Length>10));
         }
@@ -260,7 +261,7 @@ namespace FormulaTestCases
         /// test the Normalizer 
         /// </summary>
         [TestMethod]
-        public void newConstructor3()
+        public void NewConstructor3()
         {
             Formula f = new Formula("1+1", s => "2e3", s => true);
         }
@@ -269,7 +270,7 @@ namespace FormulaTestCases
         /// test the Validator  
         /// </summary>
         [TestMethod]
-        public void newConstructor4()
+        public void NewConstructor4()
         {
             Formula f = new Formula("1+1", s => s, s => (s.Contains("+")));
         }
@@ -278,7 +279,7 @@ namespace FormulaTestCases
         /// test the to string  
         /// </summary>
         [TestMethod]
-        public void newConstructor5()
+        public void NewConstructor5()
         {
             Formula f = new Formula("1+1", s => s, s => (s.Contains("+")));
             Assert.AreEqual("1+1", f.ToString());
@@ -288,7 +289,7 @@ namespace FormulaTestCases
         /// test Normalizer  
         /// </summary>
         [TestMethod]
-        public void newConstructor6()
+        public void NewConstructor6()
         {
             Formula f = new Formula("1+1", s => "40*23", s => true);
             Assert.AreEqual("40*23", f.ToString());
@@ -299,7 +300,7 @@ namespace FormulaTestCases
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void newConstructor7()
+        public void NewConstructor7()
         {
             Formula f = new Formula("1+1", null, s => (s.Length > 10));
         }
@@ -309,7 +310,7 @@ namespace FormulaTestCases
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void newConstructor8()
+        public void NewConstructor8()
         {
             Formula f = new Formula("1+1", null, null);
         }
@@ -319,7 +320,7 @@ namespace FormulaTestCases
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void newConstructor9()
+        public void NewConstructor9()
         {
             Formula f = new Formula("1+1", s => s, null);
         }
@@ -329,7 +330,7 @@ namespace FormulaTestCases
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void newConstructor10()
+        public void NewConstructor10()
         {
             Formula f = new Formula(null, s => s, s => true);
         }
@@ -339,7 +340,7 @@ namespace FormulaTestCases
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void newConstructor11()
+        public void NewConstructor11()
         {
             Formula f = new Formula(null);
         }
@@ -349,10 +350,146 @@ namespace FormulaTestCases
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void newConstructor12()
+        public void NewConstructor12()
         {
             Formula f = new Formula("1+1");
             f.Evaluate(null);
+        }
+
+        /// <summary>
+        /// test the empty constructor  
+        /// </summary>
+        [TestMethod]
+        public void EmptyConstructor1()
+        {
+            Formula f = new Formula();
+            f.Evaluate(s => 4);
+        }
+
+        /// <summary>
+        /// test the empty constructor  
+        /// </summary>
+        [TestMethod]
+        public void EmptyConstructor2()
+        {
+            Formula f = new Formula();
+            Assert.AreEqual("0", f.ToString());
+        }
+
+        /// <summary>
+        /// test the empty constructor  
+        /// </summary>
+        [TestMethod]
+        public void EmptyConstructor3()
+        {
+            Formula f = new Formula();
+            Assert.IsTrue(new HashSet<string>(f.GetVariables()).SetEquals(new HashSet<string>()));
+        }
+
+        /// <summary>
+        /// This tests ArgumentNullException
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void Argument1()
+        {
+            Formula f = new Formula(null);
+        }
+
+        /// <summary>
+        /// This tests ArgumentNullException
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void Argument2()
+        {
+            Formula f = new Formula("1+1", null, s => true);
+        }
+
+        /// <summary>
+        /// This tests ArgumentNullException
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void Argument3()
+        {
+            Formula f = new Formula("1+1", s => s, null);
+        }
+
+        /// <summary>
+        /// This tests ArgumentNullException
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void Argument4()
+        {
+            Formula f = new Formula("1+1");
+            f.Evaluate(null);
+        }
+
+        /// <summary>
+        /// This tests get
+        /// </summary>
+        [TestMethod]
+        public void ToString1()
+        {
+            Formula f = new Formula("1+1");
+            Assert.AreEqual("1+1", f.ToString());
+        }
+
+        /// This tests get
+        /// </summary>
+        [TestMethod]
+        public void ToString2()
+        {
+            Formula f = new Formula();
+            Assert.AreEqual("0", f.ToString());
+        }
+
+        /// This tests get
+        /// </summary>
+        [TestMethod]
+        public void ToString3()
+        {
+            Formula f = new Formula("1+1", s => "2-2", s => true);
+            Assert.AreEqual("2-2", f.ToString());
+        }
+
+        /// This tests get
+        /// </summary>
+        [TestMethod]
+        public void GetVariables1()
+        {
+            Formula f = new Formula("e4+r3");
+            ISet<string> set = new HashSet<string>();
+            set.Add("e4");
+            set.Add("r3");
+
+            Assert.IsTrue(new HashSet<string>(f.GetVariables()).SetEquals(set));
+        }
+
+        /// This tests get
+        /// </summary>
+        [TestMethod]
+        public void GetVariables2()
+        {
+            Formula f = new Formula("e4+r3", s => "E4+R3", s => true);
+            ISet<string> set = new HashSet<string>();
+            set.Add("E4");
+            set.Add("R3");
+
+            Assert.IsTrue(new HashSet<string>(f.GetVariables()).SetEquals(set));
+        }
+
+        /// This tests get
+        /// </summary>
+        [TestMethod]
+        public void GetVariables3()
+        {
+            Formula f = new Formula();
+            ISet<string> set = new HashSet<string>();
+
+            Assert.IsTrue(new HashSet<string>(f.GetVariables()).SetEquals(set));
         }
 
         /// <summary>

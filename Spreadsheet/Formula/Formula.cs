@@ -175,6 +175,12 @@ namespace Formulas
         /// </summary>
         public double Evaluate(Lookup lookup)
         {
+            if(tokens == null)
+            {
+                tokens = new[] { "0"};
+
+            }
+
             // see if the argument is null
             if (lookup == null) { throw new ArgumentNullException("argument is null"); }
 
@@ -371,11 +377,43 @@ namespace Formulas
         }
 
         /// <summary>
+        /// This function return an ISet<string> that contains each distinct variable (in normalized form) that appears in the 
+        /// Formula.
+        /// </summary>
+        /// <returns>ISet<string></returns>
+        public ISet<string> GetVariables()
+        {
+            // initialize the set to contain variables
+            ISet<string> result = new HashSet<string>();
+            
+            // return empty set if there is not any token
+            if(tokens == null)
+            {
+                return result;
+            }
+
+            // put variables into set
+            foreach(string str in tokens)
+            {
+                if(Regex.IsMatch(str, @"[a-zA-Z][0-9a-zA-Z]*"))
+                {
+                    result.Add(str);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Return a string representation of formular.
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
+            if(tokens == null)
+            {
+                return "0";
+            }
             string result = "";
             foreach (string token in tokens)
             {
