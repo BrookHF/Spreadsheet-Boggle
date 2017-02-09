@@ -14,7 +14,7 @@ namespace TestMain
         public delegate double Lookup(string var);
         static void Main(string[] args)
         {
-            Formula f = new Formula("(7e-5+b-c)");
+            Formula f = new Formula("(7e-5+b-c)", s => s.ToUpper(), s => true);
             //"(((((2+3*a)/(7e-5+b-c))*d+.0005e+92)-8.2)*3.14159) * ((e+3.1)-.00000000008)"
             //Console.WriteLine((double)f.Evaluate(s => (s == "x") ? 1 : 4));
 

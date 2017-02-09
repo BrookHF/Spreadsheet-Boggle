@@ -15,7 +15,7 @@ namespace Formulas
     /// the four binary operator symbols +, -, *, and /.  (The unary operators + and -
     /// are not allowed.)
     /// </summary>
-    public class Formula
+    public struct Formula
     {
         /// <summary>
         /// Creates a Formula from a string that consists of a standard infix expression composed
@@ -42,6 +42,8 @@ namespace Formulas
 
         public Formula(String formula)
         {
+            // see if the argument is null
+            if (formula == null) { throw new ArgumentNullException("argument is null"); }
             // get tokens from helper method
             tokens = GetTokens(formula);
 
@@ -118,6 +120,20 @@ namespace Formulas
 
         }
         /// <summary>
+        /// The purpose of a Normalizer is to convert variables into a canonical form.  The purpose of a Validator is 
+        /// to impose extra restrictions on the validity of a variable, beyond the ones already built into the Formula 
+        /// definition.  
+        /// </summary>
+        /// <param name="formula"></param>
+        /// <param name="norm"></param>
+        /// <param name="vali"></param>
+        public Formula(string formula, Normalizer norm, Validator vali) : this(norm(formula))
+        {
+
+            if(norm == null || vali == null) { throw new ArgumentNullException("parameter is null"); }
+            if (!vali(norm(formula))) { throw new FormulaFormatException("not valid by validator"); }
+        }
+        /// <summary>
         /// Evaluates this Formula, using the Lookup delegate to determine the values of variables.  (The
         /// delegate takes a variable name as a parameter and returns its value (if it has one) or throws
         /// an UndefinedVariableException (otherwise).  Uses the standard precedence rules when doing the evaluation.
@@ -128,6 +144,9 @@ namespace Formulas
         /// </summary>
         public double Evaluate(Lookup lookup)
         {
+            // see if the argument is null
+            if (lookup == null) { throw new ArgumentNullException("argument is null"); }
+
             // Patterns for individual tokens
 
             Stack<string> ope = new Stack<string>();
@@ -319,7 +338,23 @@ namespace Formulas
                 }
             }
         }
+
+        /// <summary>
+        /// Return a string representation of formular.
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            string result = "";
+            foreach (string token in tokens)
+            {
+                result += token;
+            }
+            return result;
+        }
     }
+
+    
 
     /// <summary>
     /// A Lookup method is one that maps some strings to double values.  Given a string,
@@ -329,6 +364,11 @@ namespace Formulas
     /// don't is up to the implementation of the method.
     /// </summary>
     public delegate double Lookup(string var);
+
+    public delegate string Normalizer(string s);
+
+    public delegate bool Validator(string s);
+
 
     /// <summary>
     /// Used to report that a Lookup delegate is unable to determine the value

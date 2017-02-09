@@ -216,6 +216,94 @@ namespace FormulaTestCases
         }
 
         /// <summary>
+        /// test the Normalizer  
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void newConstructor1()
+        {
+            Formula f = new Formula("1+1", s => "2d", s=> true);
+        }
+
+        /// <summary>
+        /// test the Validator  
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void newConstructor2()
+        {
+            Formula f = new Formula("1+1", s => s, s => (s.Length>10));
+        }
+
+        /// <summary>
+        /// test the Normalizer 
+        /// </summary>
+        [TestMethod]
+        public void newConstructor3()
+        {
+            Formula f = new Formula("1+1", s => "2e3", s => true);
+        }
+
+        /// <summary>
+        /// test the Validator  
+        /// </summary>
+        [TestMethod]
+        public void newConstructor4()
+        {
+            Formula f = new Formula("1+1", s => s, s => (s.Contains("+")));
+        }
+
+        /// <summary>
+        /// test the to string  
+        /// </summary>
+        [TestMethod]
+        public void newConstructor5()
+        {
+            Formula f = new Formula("1+1", s => s, s => (s.Contains("+")));
+            Assert.AreEqual("1+1", f.ToString());
+        }
+
+        /// <summary>
+        /// test Normalizer  
+        /// </summary>
+        [TestMethod]
+        public void newConstructor6()
+        {
+            Formula f = new Formula("1+1", s => "40*23", s => true);
+            Assert.AreEqual("40*23", f.ToString());
+        }
+
+        /// <summary>
+        /// test the ArgumentNullException  
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void newConstructor7()
+        {
+            Formula f = new Formula("1+1", null, s => (s.Length > 10));
+        }
+
+        /// <summary>
+        /// test the ArgumentNullException  
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void newConstructor8()
+        {
+            Formula f = new Formula("1+1", null, null);
+        }
+
+        /// <summary>
+        /// test the ArgumentNullException  
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void newConstructor9()
+        {
+            Formula f = new Formula("1+1", s => s, null);
+        }
+
+        /// <summary>
         /// A Lookup method that maps x to 4.0, y to 6.0, and z to 8.0.
         /// All other variables result in an UndefinedVariableException.
         /// </summary>
