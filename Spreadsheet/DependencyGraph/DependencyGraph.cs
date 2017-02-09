@@ -60,6 +60,8 @@ namespace Dependencies
         /// The dependents and dependees are represented by points to other vertex in order to save memery 
         /// space beacause string can be very long, and making it easier to modify dependees and dependents 
         /// because they are stored in different node.
+        /// 
+        /// throw argument exception if any argument is null
         /// </summary>
 
         private class DependencyGraphNode
@@ -76,6 +78,11 @@ namespace Dependencies
             // default constructor
             public DependencyGraphNode(string name)
             {
+                // throw argument exception if any argument is null
+                if(name == null)
+                {
+                    throw new ArgumentNullException("argument is null");
+                }
                 this.name = name;
                 dependee = new HashSet<DependencyGraphNode>();
                 dependent = new HashSet<DependencyGraphNode>();
@@ -115,27 +122,49 @@ namespace Dependencies
 
         /// <summary>
         /// Reports whether dependents(s) is non-empty.  Requires s != null.
+        /// 
+        /// throw argument exception if any argument is null
         /// </summary>
         public bool HasDependents(string s)
         {
+            // throw argument exception if any argument is null
+            if (s == null)
+            {
+                throw new ArgumentNullException("argument is null");
+            }
             // return false if s does not exist or it does not have any dependent
             return dependencyGraph.ContainsKey(s) && dependencyGraph[s].dependent.Count != 0;
         }
 
         /// <summary>
         /// Reports whether dependees(s) is non-empty.  Requires s != null.
+        /// 
+        /// throw argument exception if any argument is null
         /// </summary>
         public bool HasDependees(string s)
         {
+            // throw argument exception if any argument is null
+            if (s == null)
+            {
+                throw new ArgumentNullException("argument is null");
+            }
             // return false if s does not exist or it does not have any dependee
             return dependencyGraph.ContainsKey(s) && dependencyGraph[s].dependee.Count != 0;
         }
 
         /// <summary>
         /// Enumerates dependents(s).  Requires s != null.
+        /// 
+        /// throw argument exception if any argument is null
         /// </summary>
         public IEnumerable<string> GetDependents(string s)
         {
+            // throw argument exception if any argument is null
+            if (s == null)
+            {
+                throw new ArgumentNullException("argument is null");
+            }
+
             // don't output anything if the parameter passed in don't exist in the graph, or don't have any dependent
             if (!dependencyGraph.ContainsKey(s)||dependencyGraph[s].dependent.Count==0) { yield break; }
 
@@ -148,9 +177,17 @@ namespace Dependencies
 
         /// <summary>
         /// Enumerates dependees(s).  Requires s != null.
+        /// 
+        /// throw argument exception if any argument is null
         /// </summary>
         public IEnumerable<string> GetDependees(string s)
         {
+            // throw argument exception if any argument is null
+            if (s == null)
+            {
+                throw new ArgumentNullException("argument is null");
+            }
+
             // don't output anything if the parameter passed in don't exist in the graph, or don't have any dependee
             if (!dependencyGraph.ContainsKey(s) || dependencyGraph[s].dependee.Count == 0) { yield break; }
 
@@ -165,9 +202,17 @@ namespace Dependencies
         /// Adds the dependency (s,t) to this DependencyGraph.
         /// This has no effect if (s,t) already belongs to this DependencyGraph.
         /// Requires s != null and t != null.
+        /// 
+        /// throw argument exception if any argument is null
         /// </summary>
         public void AddDependency(string s, string t)
         {
+            // throw argument exception if any argument is null
+            if (s == null || t == null)
+            {
+                throw new ArgumentNullException("argument is null");
+            }
+
             // add the vertax into graph if not already exist
             if (!dependencyGraph.ContainsKey(s)) { dependencyGraph.Add(s, new DependencyGraphNode(s)); }
             if (!dependencyGraph.ContainsKey(t)) { dependencyGraph.Add(t, new DependencyGraphNode(t)); }
@@ -190,11 +235,19 @@ namespace Dependencies
         /// Removes the dependency (s,t) from this DependencyGraph.
         /// Does nothing if (s,t) doesn't belong to this DependencyGraph.
         /// Requires s != null and t != null.
+        /// 
+        /// throw argument exception if any argument is null
         /// </summary>
         public void RemoveDependency(string s, string t)
         {
+            // throw argument exception if any argument is null
+            if (s == null || t == null)
+            {
+                throw new ArgumentNullException("argument is null");
+            }
+
             // only remove the dependency pair exist
-            if(dependencyGraph.ContainsKey(s) && dependencyGraph.ContainsKey(t))
+            if (dependencyGraph.ContainsKey(s) && dependencyGraph.ContainsKey(t))
             {
                 // remove from dependent and dependee
                 dependencyGraph[t].dependee.Remove(dependencyGraph[s]);
@@ -209,9 +262,17 @@ namespace Dependencies
         /// Removes all existing dependencies of the form (s,r).  Then, for each
         /// t in newDependents, adds the dependency (s,t).
         /// Requires s != null and t != null.
+        /// 
+        /// throw argument exception if any argument is null
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
+            // throw argument exception if any argument is null
+            if (s == null || newDependents == null)
+            {
+                throw new ArgumentNullException("argument is null");
+            }
+
             // only delete if vertex s exist because s not have any dependents if not exist
             if (dependencyGraph.ContainsKey(s))
             {
@@ -229,6 +290,11 @@ namespace Dependencies
             // add new dependency pairs from enumerable
             foreach (string str in newDependents)
             {
+                // throw argument exception if any argument is null
+                if (str == null)
+                {
+                    throw new ArgumentNullException("argument is null");
+                }
                 AddDependency(s,str);
             }
         }
@@ -237,9 +303,17 @@ namespace Dependencies
         /// Removes all existing dependencies of the form (r,t).  Then, for each 
         /// s in newDependees, adds the dependency (s,t).
         /// Requires s != null and t != null.
+        /// 
+        /// throw argument exception if any argument is null
         /// </summary>
         public void ReplaceDependees(string t, IEnumerable<string> newDependees)
         {
+            // throw argument exception if any argument is null
+            if (newDependees == null || t == null)
+            {
+                throw new ArgumentNullException("argument is null");
+            }
+
             // only delete if vertex s exist because s not have any dependents if not exist
             if (dependencyGraph.ContainsKey(t))
             {
@@ -255,6 +329,11 @@ namespace Dependencies
             // add new dependency from enumerable
             foreach (string str in newDependees)
             {
+                // throw argument exception if any argument is null
+                if (str == null)
+                {
+                    throw new ArgumentNullException("argument is null");
+                }
                 this.AddDependency(str, t);
             }
         }
