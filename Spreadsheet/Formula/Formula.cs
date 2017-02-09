@@ -17,42 +17,14 @@ namespace Formulas
     /// </summary>
     public struct Formula
     {
-        /// <summary>
-        /// Creates a Formula from a string that consists of a standard infix expression composed
-        /// from non-negative floating-point numbers (using C#-like syntax for double/int literals), 
-        /// variable symbols (a letter followed by zero or more letters and/or digits), left and right
-        /// parentheses, and the four binary operator symbols +, -, *, and /.  White space is
-        /// permitted between tokens, but is not required.
-        /// 
-        /// Examples of a valid parameter to this constructor are:
-        ///     "2.5e9 + x5 / 17"
-        ///     "(5 * 2) + 8"
-        ///     "x*y-2+35/9"
-        ///     
-        /// Examples of invalid parameters are:
-        ///     "_"
-        ///     "-5.3"
-        ///     "2 5 + 3"
-        /// 
-        /// If the formula is syntacticaly invalid, throws a FormulaFormatException with an 
-        /// explanatory Message.
-        /// </summary>
-
-        private IEnumerable<string> tokens;
-
-        public Formula(String formula)
+        private void Setup()
         {
-            // see if the argument is null
-            if (formula == null) { throw new ArgumentNullException("argument is null"); }
-            // get tokens from helper method
-            tokens = GetTokens(formula);
-
             // put enumerable to list in order to see the size
             List<String> listTokens = new List<string>();
             foreach (String s in tokens)
             {
-                double i=0;
-                if (!Regex.IsMatch(s, @"^[0-9a-zA-Z.()\+\-*/]") || (s[0]>='0'&&s[0]<='9' && Regex.IsMatch(s,@"^[a-zA-Z]") && !Double.TryParse(s, out i)))
+                double i = 0;
+                if ((s[0] >= '0' && s[0] <= '9' && Regex.IsMatch(s, @"^[a-zA-Z]") && !Double.TryParse(s, out i)) || !Regex.IsMatch(s, @"^[0-9a-zA-Z.()\+\-*/]"))
                 {
                     throw new FormulaFormatException(s);
                 }
@@ -74,7 +46,7 @@ namespace Formulas
                 {
                     pareNum++;
                 }
-                if( s.Equals(")")) 
+                if (s.Equals(")"))
                 {
                     // When reading tokens from left to right, at no point should the number of closing 
                     // parentheses seen so far be greater than the number of opening parentheses seen so far.
@@ -96,29 +68,71 @@ namespace Formulas
             }
 
             // The last token of a formula must be a number, a variable, or a closing parenthesis.
-            if (!Regex.IsMatch(listTokens[listTokens.Count-1], @"^[a-zA-Z0-9).]+$"))
+            if (!Regex.IsMatch(listTokens[listTokens.Count - 1], @"^[a-zA-Z0-9).]+$"))
             {
                 throw new FormulaFormatException("Formular last token is not number or closing parenthesis");
             }
-            for(int i=0; i< listTokens.Count - 1; i++)
+            for (int i = 0; i < listTokens.Count - 1; i++)
             {
                 // Any token that immediately follows an opening parenthesis or an operator must be either a number, 
                 // a variable, or an opening parenthesis.
                 double tryInt;
-                if (Regex.IsMatch(listTokens[i], @"^[(\-\+*/(]+$") && !Regex.IsMatch(listTokens[i+1], @"^[a-zA-Z0-9.(]+$") && !double.TryParse(listTokens[i + 1], out tryInt))
+                if (Regex.IsMatch(listTokens[i], @"^[(\-\+*/(]+$") && !Regex.IsMatch(listTokens[i + 1], @"^[a-zA-Z0-9.(]+$") && !double.TryParse(listTokens[i + 1], out tryInt))
                 {
                     throw new FormulaFormatException("Formular token immediately follows an opening parenthesis or an operator must be either a number, a variable, or an opening parenthesis");
                 }
 
                 // Any token that immediately follows a number, a variable, or a closing parenthesis must be either an 
                 // operator or a closing parenthesis.
-                if (Regex.IsMatch(listTokens[i], @"^[a-zA-Z0-9.)]+$") && !Regex.IsMatch(listTokens[i+1], @"^[\+\-*/)]+$"))
+                if (Regex.IsMatch(listTokens[i], @"^[a-zA-Z0-9.)]+$") && !Regex.IsMatch(listTokens[i + 1], @"^[\+\-*/)]+$"))
                 {
                     throw new FormulaFormatException("Formular token immediately follows a number, a variable, or a closing parenthesis must be either an operator or a closing parenthesis.");
                 }
             }
+        }
+        
+        /// <summary>
+        /// IEnumarable that contains all the tokens from formular
+        /// </summary>
+        private IEnumerable<string> tokens;
+
+        /// <summary>
+        /// Creates a Formula from a string that consists of a standard infix expression composed
+        /// from non-negative floating-point numbers (using C#-like syntax for double/int literals), 
+        /// variable symbols (a letter followed by zero or more letters and/or digits), left and right
+        /// parentheses, and the four binary operator symbols +, -, *, and /.  White space is
+        /// permitted between tokens, but is not required.
+        /// 
+        /// Examples of a valid parameter to this constructor are:
+        ///     "2.5e9 + x5 / 17"
+        ///     "(5 * 2) + 8"
+        ///     "x*y-2+35/9"
+        ///     
+        /// Examples of invalid parameters are:
+        ///     "_"
+        ///     "-5.3"
+        ///     "2 5 + 3"
+        /// 
+        /// If the formula is syntacticaly invalid, throws a FormulaFormatException with an 
+        /// explanatory Message.
+        /// </summary>
+        public Formula(String formula)
+        {
+            // see if the argument is null
+            if (formula == null)
+            {
+                throw new ArgumentNullException("argument is null"); 
+            }
+
+            // get tokens from helper method
+            tokens = GetTokens(formula);
+
+            // set up common contructor portion
+            Setup();
 
         }
+
+
         /// <summary>
         /// The purpose of a Normalizer is to convert variables into a canonical form.  The purpose of a Validator is 
         /// to impose extra restrictions on the validity of a variable, beyond the ones already built into the Formula 
@@ -127,10 +141,27 @@ namespace Formulas
         /// <param name="formula"></param>
         /// <param name="norm"></param>
         /// <param name="vali"></param>
-        public Formula(string formula, Normalizer norm, Validator vali) : this(norm(formula))
+        public Formula(string formula, Normalizer norm, Validator vali)
         {
+            // see if the argument is null
+            if (formula == null || norm == null || vali == null)
+            {
+                throw new ArgumentNullException("argument is null");
+            }
 
-            if(norm == null || vali == null) { throw new ArgumentNullException("parameter is null"); }
+            try
+            {
+                // get tokens from helper method
+                tokens = GetTokens(norm(formula));
+
+                // set up common contructor portion
+                Setup();
+            }
+            catch(FormulaFormatException e)
+            {
+                throw new FormulaFormatException("normalized formular is not valid");
+            }
+
             if (!vali(norm(formula))) { throw new FormulaFormatException("not valid by validator"); }
         }
         /// <summary>

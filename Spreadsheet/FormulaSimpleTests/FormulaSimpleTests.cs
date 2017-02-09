@@ -216,6 +216,27 @@ namespace FormulaTestCases
         }
 
         /// <summary>
+        /// This uses one of each kind of token.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaEvaluationException))]
+        public void Evaluate13()
+        {
+            Formula f = new Formula("3/e23");
+            f.Evaluate(v => 0.0);
+        }
+
+        /// <summary>
+        /// This uses one of each kind of token.
+        /// </summary>
+        [TestMethod]
+        public void Evaluate14()
+        {
+            Formula f = new Formula("3/(e23+4)");
+            f.Evaluate(v => 3.0);
+        }
+
+        /// <summary>
         /// test the Normalizer  
         /// </summary>
         [TestMethod]
@@ -301,6 +322,37 @@ namespace FormulaTestCases
         public void newConstructor9()
         {
             Formula f = new Formula("1+1", s => s, null);
+        }
+
+        /// <summary>
+        /// test the ArgumentNullException  
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void newConstructor10()
+        {
+            Formula f = new Formula(null, s => s, s => true);
+        }
+
+        /// <summary>
+        /// test the ArgumentNullException  
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void newConstructor11()
+        {
+            Formula f = new Formula(null);
+        }
+
+        /// <summary>
+        /// test the ArgumentNullException  
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void newConstructor12()
+        {
+            Formula f = new Formula("1+1");
+            f.Evaluate(null);
         }
 
         /// <summary>
