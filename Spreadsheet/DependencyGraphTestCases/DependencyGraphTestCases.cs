@@ -909,7 +909,7 @@ namespace DependencyGraphTestCases
         public void ArgumentNullException4()
         {
             DependencyGraph test = new DependencyGraph();
-            test.GetDependees(null);
+            test.GetDependees(null).GetEnumerator().MoveNext();
         }
 
         /// <summary>
