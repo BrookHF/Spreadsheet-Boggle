@@ -17,8 +17,57 @@ namespace Formulas
     /// </summary>
     public struct Formula
     {
-        private void Setup()
+        
+        /// <summary>
+        /// IEnumarable that contains all the tokens from formular
+        /// </summary>
+        private IEnumerable<string> tokens;
+
+        /// <summary>
+        /// Creates a Formula from a string that consists of a standard infix expression composed
+        /// from non-negative floating-point numbers (using C#-like syntax for double/int literals), 
+        /// variable symbols (a letter followed by zero or more letters and/or digits), left and right
+        /// parentheses, and the four binary operator symbols +, -, *, and /.  White space is
+        /// permitted between tokens, but is not required.
+        /// 
+        /// Examples of a valid parameter to this constructor are:
+        ///     "2.5e9 + x5 / 17"
+        ///     "(5 * 2) + 8"
+        ///     "x*y-2+35/9"
+        ///     
+        /// Examples of invalid parameters are:
+        ///     "_"
+        ///     "-5.3"
+        ///     "2 5 + 3"
+        /// 
+        /// If the formula is syntacticaly invalid, throws a FormulaFormatException with an 
+        /// explanatory Message.
+        /// </summary>
+        public Formula(String formula) : this(formula, s => s, s => true)
         {
+
+        }
+
+
+        /// <summary>
+        /// The purpose of a Normalizer is to convert variables into a canonical form.  The purpose of a Validator is 
+        /// to impose extra restrictions on the validity of a variable, beyond the ones already built into the Formula 
+        /// definition.  
+        /// </summary>
+        /// <param name="formula"></param>
+        /// <param name="norm"></param>
+        /// <param name="vali"></param>
+        public Formula(string formula, Normalizer norm, Validator vali)
+        {
+            // see if the argument is null
+            if (formula == null || norm == null || vali == null)
+            {
+                throw new ArgumentNullException("argument is null");
+            }
+
+            // get tokens from helper method
+            tokens = GetTokens(norm(formula));
+
             // put enumerable to list in order to see the size
             List<String> listTokens = new List<string>();
             foreach (String s in tokens)
@@ -52,6 +101,10 @@ namespace Formulas
                     // parentheses seen so far be greater than the number of opening parentheses seen so far.
                     if (pareNum <= 0) throw new FormulaFormatException("Formular has ilegal parenthesis");
                     pareNum--;
+                }
+                if (Regex.IsMatch(s, "[a-zA-Z][a-zA-Z]*") && !vali(s))
+                {
+                    throw new FormulaFormatException("Validator not pass");
                 }
             }
 
@@ -89,80 +142,7 @@ namespace Formulas
                     throw new FormulaFormatException("Formular token immediately follows a number, a variable, or a closing parenthesis must be either an operator or a closing parenthesis.");
                 }
             }
-        }
-        
-        /// <summary>
-        /// IEnumarable that contains all the tokens from formular
-        /// </summary>
-        private IEnumerable<string> tokens;
 
-        /// <summary>
-        /// Creates a Formula from a string that consists of a standard infix expression composed
-        /// from non-negative floating-point numbers (using C#-like syntax for double/int literals), 
-        /// variable symbols (a letter followed by zero or more letters and/or digits), left and right
-        /// parentheses, and the four binary operator symbols +, -, *, and /.  White space is
-        /// permitted between tokens, but is not required.
-        /// 
-        /// Examples of a valid parameter to this constructor are:
-        ///     "2.5e9 + x5 / 17"
-        ///     "(5 * 2) + 8"
-        ///     "x*y-2+35/9"
-        ///     
-        /// Examples of invalid parameters are:
-        ///     "_"
-        ///     "-5.3"
-        ///     "2 5 + 3"
-        /// 
-        /// If the formula is syntacticaly invalid, throws a FormulaFormatException with an 
-        /// explanatory Message.
-        /// </summary>
-        public Formula(String formula)
-        {
-            // see if the argument is null
-            if (formula == null)
-            {
-                throw new ArgumentNullException("argument is null"); 
-            }
-
-            // get tokens from helper method
-            tokens = GetTokens(formula);
-
-            // set up common contructor portion
-            Setup();
-
-        }
-
-
-        /// <summary>
-        /// The purpose of a Normalizer is to convert variables into a canonical form.  The purpose of a Validator is 
-        /// to impose extra restrictions on the validity of a variable, beyond the ones already built into the Formula 
-        /// definition.  
-        /// </summary>
-        /// <param name="formula"></param>
-        /// <param name="norm"></param>
-        /// <param name="vali"></param>
-        public Formula(string formula, Normalizer norm, Validator vali)
-        {
-            // see if the argument is null
-            if (formula == null || norm == null || vali == null)
-            {
-                throw new ArgumentNullException("argument is null");
-            }
-
-            try
-            {
-                // get tokens from helper method
-                tokens = GetTokens(norm(formula));
-
-                // set up common contructor portion
-                Setup();
-            }
-            catch(FormulaFormatException e)
-            {
-                throw new FormulaFormatException("normalized formular is not valid");
-            }
-
-            if (!vali(norm(formula))) { throw new FormulaFormatException("not valid by validator"); }
         }
         /// <summary>
         /// Evaluates this Formula, using the Lookup delegate to determine the values of variables.  (The

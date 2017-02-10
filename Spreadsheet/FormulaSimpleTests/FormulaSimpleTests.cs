@@ -244,7 +244,7 @@ namespace FormulaTestCases
         [ExpectedException(typeof(FormulaFormatException))]
         public void NewConstructor1()
         {
-            Formula f = new Formula("1+1", s => "2d", s=> true);
+            Formula f = new Formula("1+r", s => "2d", s=> true);
         }
 
         /// <summary>
@@ -254,7 +254,7 @@ namespace FormulaTestCases
         [ExpectedException(typeof(FormulaFormatException))]
         public void NewConstructor2()
         {
-            Formula f = new Formula("1+1", s => s, s => (s.Length>10));
+            Formula f = new Formula("1+a", s => "v", s => s=="a");
         }
 
         /// <summary>
@@ -263,7 +263,7 @@ namespace FormulaTestCases
         [TestMethod]
         public void NewConstructor3()
         {
-            Formula f = new Formula("1+1", s => "2e3", s => true);
+            Formula f = new Formula("1+v", s => "2e3", s => true);
         }
 
         /// <summary>
@@ -272,7 +272,7 @@ namespace FormulaTestCases
         [TestMethod]
         public void NewConstructor4()
         {
-            Formula f = new Formula("1+1", s => s, s => (s.Contains("+")));
+            Formula f = new Formula("eb3+1", s => s, s => (s.Contains("b")));
         }
 
         /// <summary>
@@ -387,6 +387,17 @@ namespace FormulaTestCases
         }
 
         /// <summary>
+        /// test the empty constructor  
+        /// </summary>
+        [TestMethod]
+        public void EmptyConstructor4()
+        {
+            Formula f = new Formula();
+            Assert.AreEqual(0.0,f.Evaluate(s => 1));
+            Assert.IsTrue(new HashSet<string>(f.GetVariables()).SetEquals(new HashSet<string>()));
+        }
+
+        /// <summary>
         /// This tests ArgumentNullException
         /// </summary>
         [TestMethod]
@@ -437,6 +448,7 @@ namespace FormulaTestCases
             Assert.AreEqual("1+1", f.ToString());
         }
 
+        /// <summary>
         /// This tests get
         /// </summary>
         [TestMethod]
@@ -446,6 +458,7 @@ namespace FormulaTestCases
             Assert.AreEqual("0", f.ToString());
         }
 
+        /// <summary>
         /// This tests get
         /// </summary>
         [TestMethod]
@@ -455,6 +468,7 @@ namespace FormulaTestCases
             Assert.AreEqual("2-2", f.ToString());
         }
 
+        /// <summary>
         /// This tests get
         /// </summary>
         [TestMethod]
@@ -468,6 +482,7 @@ namespace FormulaTestCases
             Assert.IsTrue(new HashSet<string>(f.GetVariables()).SetEquals(set));
         }
 
+        /// <summary>
         /// This tests get
         /// </summary>
         [TestMethod]
@@ -481,6 +496,7 @@ namespace FormulaTestCases
             Assert.IsTrue(new HashSet<string>(f.GetVariables()).SetEquals(set));
         }
 
+        /// <summary>
         /// This tests get
         /// </summary>
         [TestMethod]
