@@ -78,11 +78,7 @@ namespace Dependencies
             // default constructor
             public DependencyGraphNode(string name)
             {
-                // throw argument exception if any argument is null
-                if(name == null)
-                {
-                    throw new ArgumentNullException("argument is null");
-                }
+
                 this.name = name;
                 dependee = new HashSet<DependencyGraphNode>();
                 dependent = new HashSet<DependencyGraphNode>();
@@ -111,6 +107,11 @@ namespace Dependencies
         /// </summary>
         public DependencyGraph(DependencyGraph otherDependencyGraph)
         {
+            if (otherDependencyGraph == null)
+            {
+                throw new ArgumentNullException("argument is null");
+            }
+
             //initialize number of dependency pairs and graph.
             this.size = 0;
 

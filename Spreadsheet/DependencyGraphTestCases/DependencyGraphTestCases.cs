@@ -867,5 +867,171 @@ namespace DependencyGraphTestCases
             Assert.AreEqual(old.Size, list.Count);
             Assert.AreEqual(test.Size, list.Count/2);
         }
+
+        /// <summary>
+        /// test null argument
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void ArgumentNullException1()
+        {
+            DependencyGraph test = new DependencyGraph(null);
+        }
+
+
+        /// <summary>
+        /// test test null argument
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void ArgumentNullException2()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.HasDependees(null);
+        }
+
+        /// <summary>
+        /// test test null argument
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void ArgumentNullException3()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.HasDependents(null);
+        }
+
+        /// <summary>
+        /// test test null argument
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void ArgumentNullException4()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.GetDependees(null);
+        }
+
+        /// <summary>
+        /// test test null argument
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void ArgumentNullException5()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.GetDependents(null);
+        }
+
+        /// <summary>
+        /// test test null argument
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void ArgumentNullException6()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.RemoveDependency(null, "a2");
+        }
+
+        /// <summary>
+        /// test test null argument
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void ArgumentNullException7()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.RemoveDependency("2", null);
+        }
+
+        /// <summary>
+        /// test test null argument
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void ArgumentNullException8()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.ReplaceDependees(null, new[] { "3" });
+        }
+
+        /// <summary>
+        /// test test null argument
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void ArgumentNullException9()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.ReplaceDependees("2", null);
+        }
+
+        /// <summary>
+        /// test test null argument
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void ArgumentNullException10()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.ReplaceDependents(null, new[] { "3" });
+        }
+
+        /// <summary>
+        /// test test null argument
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void ArgumentNullException11()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.ReplaceDependents("2", null);
+        }
+
+        /// <summary>
+        /// test test null argument
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void ArgumentNullException12()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.AddDependency(null,  "3");
+        }
+
+        /// <summary>
+        /// test test null argument
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void ArgumentNullException13()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.AddDependency("2", null);
+        }
+
+        /// <summary>
+        /// test test null argument
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void ArgumentNullException14()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.ReplaceDependees("s", new[] { "2", null, "ee" });
+        }
+
+        /// <summary>
+        /// test test null argument
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void ArgumentNullException15()
+        {
+            DependencyGraph test = new DependencyGraph();
+            test.ReplaceDependents("s", new[] { "2", null, "ee" });
+        }
+
     }
 }
