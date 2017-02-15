@@ -66,8 +66,7 @@ namespace Formulas
             }
 
             // get tokens from helper method
-            tokens = GetTokens(norm(formula));
-
+            tokens = GetTokens(formula);
             // put enumerable to list in order to see the size
             List<String> listTokens = new List<string>();
             foreach (String s in tokens)
@@ -80,6 +79,16 @@ namespace Formulas
 
                 listTokens.Add(s);
             }
+
+            for(int i=0; i<listTokens.Count; i++)
+            {
+                if (Regex.IsMatch(listTokens[i], "^[a-zA-Z][a-zA-Z0-9]*"))
+                {
+                    listTokens[i] = norm(listTokens[i]);
+                }
+            }
+
+            tokens = listTokens;
 
             // There must be at least one token.
             if (listTokens.Count == 0)
@@ -102,7 +111,7 @@ namespace Formulas
                     if (pareNum <= 0) throw new FormulaFormatException("Formular has ilegal parenthesis");
                     pareNum--;
                 }
-                if (Regex.IsMatch(s, "[a-zA-Z][a-zA-Z]*") && !vali(s))
+                if (Regex.IsMatch(s, "^[a-zA-Z][a-zA-Z0-9]*") && !vali(s))
                 {
                     throw new FormulaFormatException("Validator not pass");
                 }

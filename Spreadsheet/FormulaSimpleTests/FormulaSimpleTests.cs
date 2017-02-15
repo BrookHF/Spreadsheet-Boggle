@@ -241,10 +241,9 @@ namespace FormulaTestCases
         /// test the Normalizer  
         /// </summary>
         [TestMethod]
-        [ExpectedException(typeof(FormulaFormatException))]
         public void NewConstructor1()
         {
-            Formula f = new Formula("1+r", s => "2d", s=> true);
+            Formula f = new Formula("1+r", s => "d", s=> true);
         }
 
         /// <summary>
@@ -292,7 +291,7 @@ namespace FormulaTestCases
         public void NewConstructor6()
         {
             Formula f = new Formula("1+1", s => "40*23", s => true);
-            Assert.AreEqual("40*23", f.ToString());
+            Assert.AreEqual("1+1", f.ToString());
         }
 
         /// <summary>
@@ -465,7 +464,7 @@ namespace FormulaTestCases
         public void ToString3()
         {
             Formula f = new Formula("1+1", s => "2-2", s => true);
-            Assert.AreEqual("2-2", f.ToString());
+            Assert.AreEqual("1+1", f.ToString());
         }
 
         /// <summary>
@@ -488,7 +487,7 @@ namespace FormulaTestCases
         [TestMethod]
         public void GetVariables2()
         {
-            Formula f = new Formula("e4+r3", s => "E4+R3", s => true);
+            Formula f = new Formula("e4+r3", s => s.ToUpper(), s => true);
             ISet<string> set = new HashSet<string>();
             set.Add("E4");
             set.Add("R3");
