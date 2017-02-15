@@ -14,8 +14,12 @@ namespace TestMain
         public delegate double Lookup(string var);
         static void Main(string[] args)
         {
-            Formula f = new Formula();
-            Console.WriteLine(f.ToString());
+            Formula f = new Formula("x+y+z", s => s + s, s => true);
+            var actual = f.GetVariables();
+            foreach(string s in actual)
+            {
+                Console.WriteLine(s);
+            }
 
             while (true) ;
         }
