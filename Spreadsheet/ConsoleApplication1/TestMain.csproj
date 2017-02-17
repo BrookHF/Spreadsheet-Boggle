@@ -54,6 +54,10 @@
       <Project>{862EAD85-346F-4D2B-A53C-98074FF813BA}</Project>
       <Name>DependencyGraph</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Spreadsheet\Spreadsheet.csproj">
+      <Project>{9025A594-DF2A-4E6A-B8C2-F087ECC3E203}</Project>
+      <Name>Spreadsheet</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

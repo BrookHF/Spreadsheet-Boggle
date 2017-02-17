@@ -384,7 +384,7 @@ namespace Formulas
             // put variables into set
             foreach(string str in tokens)
             {
-                if(Regex.IsMatch(str, "^[a-zA-Z][a-zA-Z0-9]*"))
+                if(Regex.IsMatch(str, "^[a-zA-Z][a-zA-Z0-9]*$"))
                 {
                     result.Add(str);
                 }
