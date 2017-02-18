@@ -1,4 +1,6 @@
 ﻿// Written by Joe Zachary for CS 3500, February 2017
+//
+// Feb 15, 2017 10:34 am:  Add restriction to specificiation of third overload of SetCellContents
 
 using System;
 using System.Collections.Generic;
@@ -124,7 +126,9 @@ namespace SS
         public abstract ISet<String> SetCellContents(String name, String text);
 
         /// <summary>
-        /// Otherwise, if name is null or invalid, throws an InvalidNameException.
+        /// Requires that all of the variables in formula are valid cell names.
+        /// 
+        /// If name is null or invalid, throws an InvalidNameException.
         /// 
         /// Otherwise, if changing the contents of the named cell to be the formula would cause a 
         /// circular dependency, throws a CircularException.
