@@ -54,6 +54,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Formula\Formula.csproj">
+      <Project>{D43D998C-9797-4CF4-9BB0-6DE22753849A}</Project>
+      <Name>Formula</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Spreadsheet\Spreadsheet.csproj">
       <Project>{9025a594-df2a-4e6a-b8c2-f087ecc3e203}</Project>
       <Name>Spreadsheet</Name>
