@@ -44,7 +44,6 @@
     <Compile Include="AbstractSpreadsheet.cs" />
     <Compile Include="Spreadsheet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TextWriter.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DependencyGraph\DependencyGraph.csproj">

@@ -17,10 +17,13 @@ using Dependencies;
 using Formulas;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Schema;
 
 namespace SS
 {
@@ -135,41 +138,76 @@ namespace SS
         /// <summary>
         /// the C# expression IsValid.IsMatch(s.ToUpper()) is used in the program
         /// </summary>
-        private Regex isValid { get; set; } 
-
+        private Regex isValid { get; set; }
 
 
         /// <summary>
-        /// An AbstractSpreadsheet object represents the state of a simple spreadsheet.  A 
-        /// spreadsheet consists of a regular expression (called IsValid below) and an infinite 
-        /// number of named cells.
-        /// 
-        /// A string is a valid cell name if and only if (1) s consists of one or more letters, 
-        /// followed by a non-zero digit, followed by zero or more digits AND (2) the C#
-        /// expression IsValid.IsMatch(s.ToUpper()) is true.
-        /// 
-        /// For example, "A15", "a15", "XY32", and "BC7" are valid cell names, so long as they also
-        /// are accepted by IsValid.  On the other hand, "Z", "X07", and "hello" are not valid cell 
-        /// names, regardless of IsValid.
-        /// 
-        /// Any valid incoming cell name, whether passed as a parameter or embedded in a formula,
-        /// must be normalized by converting all letters to upper case before it is used by this 
-        /// this spreadsheet.  For example, the Formula "x3+a5" should be normalize to "X3+A5" before 
-        /// use.  Similarly, all cell names and Formulas that are returned or written to a file must also
-        /// be normalized.
+        /// Creates an empty Spreadsheet whose IsValid regular expression accepts every string.
+        /// </summary>
+        public Spreadsheet() : this(new Regex(".*"))
+        {
+        }
+
+        /// <summary>
+        /// Creates an empty Spreadsheet whose IsValid regular expression is provided as the parameter
         /// </summary>
         public Spreadsheet(Regex isValid)
         {
+            Changed = false;
             this.isValid = isValid;
             dependencyGraph = new DependencyGraph();
             cellSet = new Dictionary<string, Cell>();
         }
 
         /// <summary>
-        /// Zero argument constructor for spreadsheet
+        /// /// Creates a Spreadsheet that is a duplicate of the spreadsheet saved in source.
+        ///
+        /// See the AbstractSpreadsheet.Save method and Spreadsheet.xsd for the file format 
+        /// specification.  
+        ///
+        /// If there's a problem reading source, throws an IOException.
+        ///
+        /// Else if the contents of source are not consistent with the schema in Spreadsheet.xsd, 
+        /// throws a SpreadsheetReadException.  
+        ///
+        /// Else if the IsValid string contained in source is not a valid C# regular expression, throws
+        /// a SpreadsheetReadException.  (If the exception is not thrown, this regex is referred to
+        /// below as oldIsValid.)
+        ///
+        /// Else if there is a duplicate cell name in the source, throws a SpreadsheetReadException.
+        /// (Two cell names are duplicates if they are identical after being converted to upper case.)
+        ///
+        /// Else if there is an invalid cell name or an invalid formula in the source, throws a 
+        /// SpreadsheetReadException.  (Use oldIsValid in place of IsValid in the definition of 
+        /// cell name validity.)
+        ///
+        /// Else if there is an invalid cell name or an invalid formula in the source, throws a
+        /// SpreadsheetVersionException.  (Use newIsValid in place of IsValid in the definition of
+        /// cell name validity.)
+        ///
+        /// Else if there's a formula that causes a circular dependency, throws a SpreadsheetReadException. 
+        ///
+        /// Else, create a Spreadsheet that is a duplicate of the one encoded in source except that
+        /// the new Spreadsheet's IsValid regular expression should be newIsValid.
         /// </summary>
-        public Spreadsheet() : this(new Regex(".*"))
+        /// <param name="sourse"></param>
+        /// <param name="isValid"></param>
+        /// 
+        public Spreadsheet(TextReader sourse, Regex isValid)
         {
+           
+            // Create the XmlReader object.
+            XmlReader reader = XmlReader.Create(sourse,new XmlReaderSettings());
+            reader.Read();
+
+            //reader.
+
+            //if()
+            reader.ReadAttributeValue();
+            //sourse.
+            this.isValid = isValid;
+            dependencyGraph = new DependencyGraph();
+            cellSet = new Dictionary<string, Cell>();
         }
 
         // ADDED FOR PS6
@@ -201,7 +239,9 @@ namespace SS
         /// </summary>
         public override void Save(TextWriter dest)
         {
-            
+            Changed = false;
+
+
         }
 
         // ADDED FOR PS6
@@ -217,6 +257,24 @@ namespace SS
             if (name == null || !isValidCellName(name))
             {
                 throw new InvalidNameException();
+            }
+
+            if(cellSet[name].content is Formula)
+            {
+                Formula f = (Formula)cellSet[name].content;
+                // set cell value
+                try
+                {
+                    cellSet[name].value = f.Evaluate(s => CellValueLookup(s));
+                }
+                catch (UndefinedVariableException e)
+                {
+                    cellSet[name].value = new FormulaError(e.ToString());
+                }
+            }
+            else
+            {
+                cellSet[name].value = cellSet[name].content;
             }
 
             return null;
@@ -355,9 +413,6 @@ namespace SS
             // set cell content and value
             cellSet[name].content = number;
 
-            // set cell value
-            cellSet[name].value = number;
-
             return result;
         }
 
@@ -402,8 +457,7 @@ namespace SS
             //set content and value
             cellSet[name].content = text;
 
-            // set cell value
-            cellSet[name].value = text;
+            
 
             return result;
         }
@@ -441,12 +495,12 @@ namespace SS
             //using result set to put name plus the names of all other cells whose value depends
             ISet<string> result = new HashSet<string>(GetCellsToRecalculate(name));
             cellSet[name].content = formula;
-
-            // set cell value
-            cellSet[name].value = formula.Evaluate(s => cellSet[s].value);
-
+            
             return result;
         }
+
+
+
 
         /// <summary>
         /// If name is null, throws an ArgumentNullException.
@@ -479,11 +533,29 @@ namespace SS
                 throw new InvalidNameException();
             }
 
+            // update the value
+            cellSet[name].value = GetCellValue(name);
+
             // unit dependees and dependents of one cell
             ISet<string> result = new HashSet<string>(dependencyGraph.GetDependees(name));
 
             return result;
         }
+
+        /// <summary>
+        /// A lookup function that return double if cell's value is double, otherwise throw UndefinedVariableException
+        /// </summary>
+        /// <param name="var"></param>
+        /// <returns></returns>
+        private double CellValueLookup(string var)
+        {
+            if (!(cellSet[var].value is double))
+            {
+                throw new UndefinedVariableException("variable not defined");
+            }
+            return (double)cellSet[var].value;
+        }
+
 
         /// <summary>
         /// Helper method that return ture if cell name is valid, return false if cell name is not valid.
@@ -496,8 +568,5 @@ namespace SS
         {
             return Regex.IsMatch(cellName, "^[a-zA-z]{1,2}[1-9]{1}[0-9]*$") && isValid.IsMatch(cellName.ToUpper());
         }
-
-
-
     }
 }
