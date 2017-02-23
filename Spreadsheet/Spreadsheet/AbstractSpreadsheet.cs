@@ -40,6 +40,7 @@ namespace SS
     /// </summary>
     public class SpreadsheetReadException : Exception
     {
+
         /// <summary>
         /// Creates the exception with a message
         /// </summary>

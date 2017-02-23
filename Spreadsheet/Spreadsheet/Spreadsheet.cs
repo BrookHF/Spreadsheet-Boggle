@@ -123,6 +123,26 @@ namespace SS
                 this.cellName = name;
                 this.content = "";
             }
+
+            /// <summary>
+            /// to string function for cell.
+            /// If the cell contains a string, the string (without surrounding double quotes) is the output string.
+            /// If the cell contains a double d, d.ToString() is the output string.
+            /// If the cell contains a Formula f, f.ToString() with "=" prepended is the output string.
+            /// </summary>
+            /// <returns></returns>
+            public override string ToString()
+            {
+                if(content is Formula)
+                {
+                    return "=" + ((Formula)content).ToString();
+                }
+                else if(content is double)
+                {
+                    return ((double)content).ToString();
+                }
+                return (string)content;
+            }
         }
 
         /// <summary>
@@ -160,7 +180,7 @@ namespace SS
         }
 
         /// <summary>
-        /// /// Creates a Spreadsheet that is a duplicate of the spreadsheet saved in source.
+        /// Creates a Spreadsheet that is a duplicate of the spreadsheet saved in source.
         ///
         /// See the AbstractSpreadsheet.Save method and Spreadsheet.xsd for the file format 
         /// specification.  
@@ -195,19 +215,80 @@ namespace SS
         /// 
         public Spreadsheet(TextReader sourse, Regex isValid)
         {
-           
+
+            // Create the XmlSchemaSet class.  Anything with the namespace "urn:states-schema" will
+            // be validated against states3.xsd.
+            XmlSchemaSet sc = new XmlSchemaSet();
+
+            // NOTE: To read states3.xsd this way, it must be stored in the same folder with the
+            // executable.  To arrange this, I set the "Copy to Output Directory" propery of states3.xsd to
+            // "Copy If Newer", which will copy states3.xsd as part of each build (if it has changed
+            // since the last build).
+            sc.Add(null, "Spreadsheet.xsd");
+
+            // Configure validation.
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.ValidationType = ValidationType.Schema;
+            settings.Schemas = sc;
+            settings.ValidationEventHandler += ValidationCallback;
+
+            
             // Create the XmlReader object.
-            XmlReader reader = XmlReader.Create(sourse,new XmlReaderSettings());
-            reader.Read();
+            using (XmlReader reader = XmlReader.Create(sourse, settings))
+            {
+                while (reader.Read())
+                {
+                    if (reader.IsStartElement())
+                    {
+                        string newCell = "";
+                        switch (reader.Name)
+                        {
+                            case "spreadsheet":
+                                // initialize spreadsheet
+                                Changed = false;
+                                dependencyGraph = new DependencyGraph();
+                                cellSet = new Dictionary<string, Cell>();
+                                break;
 
-            //reader.
+                            case "IsValid":
 
-            //if()
-            reader.ReadAttributeValue();
-            //sourse.
-            this.isValid = isValid;
-            dependencyGraph = new DependencyGraph();
-            cellSet = new Dictionary<string, Cell>();
+                                reader.Read();
+                                // if the IsValid string contained in source is not a valid C# regular expression, throws
+                                // a SpreadsheetReadException.
+                                try
+                                {
+                                    //If the exception is not thrown, this regex is referred to below as oldIsValid.
+                                    Regex oldIsValid = new Regex(reader.Value);
+                                }
+                                catch
+                                {
+                                    throw new SpreadsheetReadException("not a valid C# regular expression"); 
+                                }
+                                this.isValid = isValid;
+                                break;
+
+                            case "cell":
+                                break;
+
+                            case "name":
+                                reader.Read();
+                                newCell = reader.Value;
+                                cellSet.Add(newCell, new Cell(newCell));
+                                break;
+
+                            case "contents":
+                                reader.Read();
+                                SetContentsOfCell(newCell, reader.Value);
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void ValidationCallback(object sender, ValidationEventArgs e)
+        {
+            throw new SpreadsheetReadException("saved spreadsheet could not be read because of a formatting problem");
         }
 
         // ADDED FOR PS6
@@ -239,9 +320,31 @@ namespace SS
         /// </summary>
         public override void Save(TextWriter dest)
         {
-            Changed = false;
+            // if the spreadsheet is changed after created or saved, save the spreadsheet to XML file
+            if(Changed == true)
+            {
+                using (XmlWriter writer = XmlWriter.Create(dest))
+                {
+                    writer.WriteStartDocument();
+                    writer.WriteStartElement("spreadsheet");
 
+                    // The value of the IsValid attribute is IsValid.ToString()
+                    writer.WriteElementString("IsValid", isValid.ToString());
 
+                    // Add each none empty cell
+                    foreach(string str in GetNamesOfAllNonemptyCells())
+                    {
+                        writer.WriteStartElement("cell");
+                        writer.WriteElementString("name", str);
+                        writer.WriteElementString("contents", cellSet[str].ToString());
+                        writer.WriteEndElement();
+                    }
+
+                    writer.WriteEndElement();
+                    writer.WriteEndDocument();
+                }
+                Changed = false;
+            }
         }
 
         // ADDED FOR PS6
@@ -358,7 +461,7 @@ namespace SS
             }
 
             //if name is null or invalid, throws an InvalidNameException.
-            if(name == null || isValidCellName(name))
+            if(name == null || !isValidCellName(name))
             {
                 throw new InvalidNameException();
             }

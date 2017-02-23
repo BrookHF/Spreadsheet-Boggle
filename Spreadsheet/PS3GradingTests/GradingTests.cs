@@ -736,208 +736,208 @@ namespace GradingTests
             }
 
 
-            // ********************************** ANOTHER STESS TEST, REPEATED ******************** //
-            /// <summary>
-            ///Using lots of data with replacement
-            ///</summary>
-            [TestMethod()]
-            public void StressTest8()
-            {
-                // Dependency graph
-                DependencyGraph t = new DependencyGraph();
+        //    // ********************************** ANOTHER STESS TEST, REPEATED ******************** //
+        //    /// <summary>
+        //    ///Using lots of data with replacement
+        //    ///</summary>
+        //    [TestMethod()]
+        //    public void StressTest8()
+        //    {
+        //        // Dependency graph
+        //        DependencyGraph t = new DependencyGraph();
 
-                // A bunch of strings to use
-                const int SIZE = 400;
-                string[] letters = new string[SIZE];
-                for (int i = 0; i < SIZE; i++)
-                {
-                    letters[i] = ("" + (char)('a' + i));
-                }
+        //        // A bunch of strings to use
+        //        const int SIZE = 400;
+        //        string[] letters = new string[SIZE];
+        //        for (int i = 0; i < SIZE; i++)
+        //        {
+        //            letters[i] = ("" + (char)('a' + i));
+        //        }
 
-                // The correct answers
-                HashSet<string>[] dents = new HashSet<string>[SIZE];
-                HashSet<string>[] dees = new HashSet<string>[SIZE];
-                for (int i = 0; i < SIZE; i++)
-                {
-                    dents[i] = new HashSet<string>();
-                    dees[i] = new HashSet<string>();
-                }
+        //        // The correct answers
+        //        HashSet<string>[] dents = new HashSet<string>[SIZE];
+        //        HashSet<string>[] dees = new HashSet<string>[SIZE];
+        //        for (int i = 0; i < SIZE; i++)
+        //        {
+        //            dents[i] = new HashSet<string>();
+        //            dees[i] = new HashSet<string>();
+        //        }
 
-                // Add a bunch of dependencies
-                for (int i = 0; i < SIZE; i++)
-                {
-                    for (int j = i + 1; j < SIZE; j++)
-                    {
-                        t.AddDependency(letters[i], letters[j]);
-                        dents[i].Add(letters[j]);
-                        dees[j].Add(letters[i]);
-                    }
-                }
+        //        // Add a bunch of dependencies
+        //        for (int i = 0; i < SIZE; i++)
+        //        {
+        //            for (int j = i + 1; j < SIZE; j++)
+        //            {
+        //                t.AddDependency(letters[i], letters[j]);
+        //                dents[i].Add(letters[j]);
+        //                dees[j].Add(letters[i]);
+        //            }
+        //        }
 
-                // Remove a bunch of dependencies
-                for (int i = 0; i < SIZE; i++)
-                {
-                    for (int j = i + 2; j < SIZE; j += 3)
-                    {
-                        t.RemoveDependency(letters[i], letters[j]);
-                        dents[i].Remove(letters[j]);
-                        dees[j].Remove(letters[i]);
-                    }
-                }
+        //        // Remove a bunch of dependencies
+        //        for (int i = 0; i < SIZE; i++)
+        //        {
+        //            for (int j = i + 2; j < SIZE; j += 3)
+        //            {
+        //                t.RemoveDependency(letters[i], letters[j]);
+        //                dents[i].Remove(letters[j]);
+        //                dees[j].Remove(letters[i]);
+        //            }
+        //        }
 
-                // Replace a bunch of dependents
-                for (int i = 0; i < SIZE; i += 2)
-                {
-                    HashSet<string> newDents = new HashSet<String>();
-                    for (int j = 0; j < SIZE; j += 5)
-                    {
-                        newDents.Add(letters[j]);
-                    }
-                    t.ReplaceDependents(letters[i], newDents);
+        //        // Replace a bunch of dependents
+        //        for (int i = 0; i < SIZE; i += 2)
+        //        {
+        //            HashSet<string> newDents = new HashSet<String>();
+        //            for (int j = 0; j < SIZE; j += 5)
+        //            {
+        //                newDents.Add(letters[j]);
+        //            }
+        //            t.ReplaceDependents(letters[i], newDents);
 
-                    foreach (string s in dents[i])
-                    {
-                        dees[s[0] - 'a'].Remove(letters[i]);
-                    }
+        //            foreach (string s in dents[i])
+        //            {
+        //                dees[s[0] - 'a'].Remove(letters[i]);
+        //            }
 
-                    foreach (string s in newDents)
-                    {
-                        dees[s[0] - 'a'].Add(letters[i]);
-                    }
+        //            foreach (string s in newDents)
+        //            {
+        //                dees[s[0] - 'a'].Add(letters[i]);
+        //            }
 
-                    dents[i] = newDents;
-                }
+        //            dents[i] = newDents;
+        //        }
 
-                // Make sure everything is right
-                for (int i = 0; i < SIZE; i++)
-                {
-                    Assert.IsTrue(dents[i].SetEquals(new HashSet<string>(t.GetDependents(letters[i]))));
-                    Assert.IsTrue(dees[i].SetEquals(new HashSet<string>(t.GetDependees(letters[i]))));
-                }
-            }
+        //        // Make sure everything is right
+        //        for (int i = 0; i < SIZE; i++)
+        //        {
+        //            Assert.IsTrue(dents[i].SetEquals(new HashSet<string>(t.GetDependents(letters[i]))));
+        //            Assert.IsTrue(dees[i].SetEquals(new HashSet<string>(t.GetDependees(letters[i]))));
+        //        }
+        //    }
 
-            [TestMethod()]
-            public void StressTest9()
-            {
-                StressTest8();
-            }
-            [TestMethod()]
-            public void StressTest10()
-            {
-                StressTest8();
-            }
-            [TestMethod()]
-            public void StressTest11()
-            {
-                StressTest8();
-            }
-            [TestMethod()]
-            public void StressTest12()
-            {
-                StressTest8();
-            }
+        //    [TestMethod()]
+        //    public void StressTest9()
+        //    {
+        //        StressTest8();
+        //    }
+        //    [TestMethod()]
+        //    public void StressTest10()
+        //    {
+        //        StressTest8();
+        //    }
+        //    [TestMethod()]
+        //    public void StressTest11()
+        //    {
+        //        StressTest8();
+        //    }
+        //    [TestMethod()]
+        //    public void StressTest12()
+        //    {
+        //        StressTest8();
+        //    }
 
 
-            // ********************************** A THIRD STESS TEST, REPEATED ******************** //
-            /// <summary>
-            ///Using lots of data with replacement
-            ///</summary>
-            [TestMethod()]
-            public void StressTest15()
-            {
-                // Dependency graph
-                DependencyGraph t = new DependencyGraph();
+        //    // ********************************** A THIRD STESS TEST, REPEATED ******************** //
+        //    /// <summary>
+        //    ///Using lots of data with replacement
+        //    ///</summary>
+        //    [TestMethod()]
+        //    public void StressTest15()
+        //    {
+        //        // Dependency graph
+        //        DependencyGraph t = new DependencyGraph();
 
-                // A bunch of strings to use
-                const int SIZE = 800;
-                string[] letters = new string[SIZE];
-                for (int i = 0; i < SIZE; i++)
-                {
-                    letters[i] = ("" + (char)('a' + i));
-                }
+        //        // A bunch of strings to use
+        //        const int SIZE = 800;
+        //        string[] letters = new string[SIZE];
+        //        for (int i = 0; i < SIZE; i++)
+        //        {
+        //            letters[i] = ("" + (char)('a' + i));
+        //        }
 
-                // The correct answers
-                HashSet<string>[] dents = new HashSet<string>[SIZE];
-                HashSet<string>[] dees = new HashSet<string>[SIZE];
-                for (int i = 0; i < SIZE; i++)
-                {
-                    dents[i] = new HashSet<string>();
-                    dees[i] = new HashSet<string>();
-                }
+        //        // The correct answers
+        //        HashSet<string>[] dents = new HashSet<string>[SIZE];
+        //        HashSet<string>[] dees = new HashSet<string>[SIZE];
+        //        for (int i = 0; i < SIZE; i++)
+        //        {
+        //            dents[i] = new HashSet<string>();
+        //            dees[i] = new HashSet<string>();
+        //        }
 
-                // Add a bunch of dependencies
-                for (int i = 0; i < SIZE; i++)
-                {
-                    for (int j = i + 1; j < SIZE; j++)
-                    {
-                        t.AddDependency(letters[i], letters[j]);
-                        dents[i].Add(letters[j]);
-                        dees[j].Add(letters[i]);
-                    }
-                }
+        //        // Add a bunch of dependencies
+        //        for (int i = 0; i < SIZE; i++)
+        //        {
+        //            for (int j = i + 1; j < SIZE; j++)
+        //            {
+        //                t.AddDependency(letters[i], letters[j]);
+        //                dents[i].Add(letters[j]);
+        //                dees[j].Add(letters[i]);
+        //            }
+        //        }
 
-                // Remove a bunch of dependencies
-                for (int i = 0; i < SIZE; i++)
-                {
-                    for (int j = i + 2; j < SIZE; j += 3)
-                    {
-                        t.RemoveDependency(letters[i], letters[j]);
-                        dents[i].Remove(letters[j]);
-                        dees[j].Remove(letters[i]);
-                    }
-                }
+        //        // Remove a bunch of dependencies
+        //        for (int i = 0; i < SIZE; i++)
+        //        {
+        //            for (int j = i + 2; j < SIZE; j += 3)
+        //            {
+        //                t.RemoveDependency(letters[i], letters[j]);
+        //                dents[i].Remove(letters[j]);
+        //                dees[j].Remove(letters[i]);
+        //            }
+        //        }
 
-                // Replace a bunch of dependees
-                for (int i = 0; i < SIZE; i += 2)
-                {
-                    HashSet<string> newDees = new HashSet<String>();
-                    for (int j = 0; j < SIZE; j += 9)
-                    {
-                        newDees.Add(letters[j]);
-                    }
-                    t.ReplaceDependees(letters[i], newDees);
+        //        // Replace a bunch of dependees
+        //        for (int i = 0; i < SIZE; i += 2)
+        //        {
+        //            HashSet<string> newDees = new HashSet<String>();
+        //            for (int j = 0; j < SIZE; j += 9)
+        //            {
+        //                newDees.Add(letters[j]);
+        //            }
+        //            t.ReplaceDependees(letters[i], newDees);
 
-                    foreach (string s in dees[i])
-                    {
-                        dents[s[0] - 'a'].Remove(letters[i]);
-                    }
+        //            foreach (string s in dees[i])
+        //            {
+        //                dents[s[0] - 'a'].Remove(letters[i]);
+        //            }
 
-                    foreach (string s in newDees)
-                    {
-                        dents[s[0] - 'a'].Add(letters[i]);
-                    }
+        //            foreach (string s in newDees)
+        //            {
+        //                dents[s[0] - 'a'].Add(letters[i]);
+        //            }
 
-                    dees[i] = newDees;
-                }
+        //            dees[i] = newDees;
+        //        }
 
-                // Make sure everything is right
-                for (int i = 0; i < SIZE; i++)
-                {
-                    Assert.IsTrue(dents[i].SetEquals(new HashSet<string>(t.GetDependents(letters[i]))));
-                    Assert.IsTrue(dees[i].SetEquals(new HashSet<string>(t.GetDependees(letters[i]))));
-                }
-            }
+        //        // Make sure everything is right
+        //        for (int i = 0; i < SIZE; i++)
+        //        {
+        //            Assert.IsTrue(dents[i].SetEquals(new HashSet<string>(t.GetDependents(letters[i]))));
+        //            Assert.IsTrue(dees[i].SetEquals(new HashSet<string>(t.GetDependees(letters[i]))));
+        //        }
+        //    }
 
-            [TestMethod()]
-            public void StressTest16()
-            {
-                StressTest15();
-            }
-            [TestMethod()]
-            public void StressTest17()
-            {
-                StressTest15();
-            }
-            [TestMethod()]
-            public void StressTest18()
-            {
-                StressTest15();
-            }
-            [TestMethod()]
-            public void StressTest19()
-            {
-                StressTest15();
-            }
+        //    [TestMethod()]
+        //    public void StressTest16()
+        //    {
+        //        StressTest15();
+        //    }
+        //    [TestMethod()]
+        //    public void StressTest17()
+        //    {
+        //        StressTest15();
+        //    }
+        //    [TestMethod()]
+        //    public void StressTest18()
+        //    {
+        //        StressTest15();
+        //    }
+        //    [TestMethod()]
+        //    public void StressTest19()
+        //    {
+        //        StressTest15();
+        //    }
         }
     }
 }

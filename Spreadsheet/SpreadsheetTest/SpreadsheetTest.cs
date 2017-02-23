@@ -28,7 +28,7 @@ namespace SpreadsheetTest
         public void NullArgument2()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("aa", null);
+            sheet.SetContentsOfCell("aa", null);
         }
         /// <summary>
         /// test argument null
@@ -38,7 +38,7 @@ namespace SpreadsheetTest
         public void NullArgument3()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents(null, 1.0);
+            sheet.SetContentsOfCell(null, "1.0");
         }
         /// <summary>
         /// test argument null
@@ -48,7 +48,7 @@ namespace SpreadsheetTest
         public void NullArgument4()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents(null, "dd");
+            sheet.SetContentsOfCell(null, "dd");
         }
         /// <summary>
         /// test argument null
@@ -58,7 +58,7 @@ namespace SpreadsheetTest
         public void NullArgument5()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents(null, new Formula("1"));
+            sheet.SetContentsOfCell(null, "=1");
         }
         /// <summary>
         /// test name is not valid
@@ -119,7 +119,7 @@ namespace SpreadsheetTest
         public void InvalidName6()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("A", 1.0);
+            sheet.SetContentsOfCell("A", "1.0");
         }
 
         /// <summary>
@@ -130,7 +130,7 @@ namespace SpreadsheetTest
         public void InvalidName7()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("AB4a", "d");
+            sheet.SetContentsOfCell("AB4a", "d");
         }
         /// <summary>
         /// test name is not valid
@@ -140,7 +140,7 @@ namespace SpreadsheetTest
         public void InvalidName8()
         {
             AbstractSpreadsheet sheet = new Spreadsheet();
-            sheet.SetCellContents("1", new Formula("2"));
+            sheet.SetContentsOfCell("1", "=2");
         }
         /// <summary>
         /// test get cell contents
@@ -149,7 +149,7 @@ namespace SpreadsheetTest
         public void GetCellContent1()
         {
             AbstractSpreadsheet s = new Spreadsheet();
-            s.SetCellContents("Z7", 1.0);
+            s.SetContentsOfCell("Z7", "1.0");
             Assert.AreEqual(1.0, s.GetCellContents("Z7"));
         }
         /// <summary>
@@ -159,7 +159,7 @@ namespace SpreadsheetTest
         public void GetCellContent2()
         {
             AbstractSpreadsheet s = new Spreadsheet();
-            s.SetCellContents("Z7", "hello");
+            s.SetContentsOfCell("Z7", "hello");
             Assert.AreEqual("hello", s.GetCellContents("Z7"));
         }
         /// <summary>
@@ -169,7 +169,7 @@ namespace SpreadsheetTest
         public void GetCellContent3()
         {
             AbstractSpreadsheet s = new Spreadsheet();
-            s.SetCellContents("Z7", new Formula("1.0"));
+            s.SetContentsOfCell("Z7", "=1.0");
             Formula f = (Formula)s.GetCellContents("Z7");
             Assert.AreEqual(1.0, f.Evaluate(v => 1.0));
         }
@@ -181,7 +181,7 @@ namespace SpreadsheetTest
         public void nullEmptyCell1()
         {
             AbstractSpreadsheet s = new Spreadsheet();
-            s.SetCellContents("B1", "");
+            s.SetContentsOfCell("B1", "");
             Assert.IsFalse(s.GetNamesOfAllNonemptyCells().GetEnumerator().MoveNext());
         }
 
@@ -192,7 +192,7 @@ namespace SpreadsheetTest
         public void nullEmptyCell2()
         {
             AbstractSpreadsheet s = new Spreadsheet();
-            s.SetCellContents("B1", "A2");
+            s.SetContentsOfCell("B1", "A2");
             Assert.IsTrue(s.GetNamesOfAllNonemptyCells().GetEnumerator().MoveNext());
         }
         /// <summary>
@@ -202,8 +202,8 @@ namespace SpreadsheetTest
         public void nullEmptyCell3()
         {
             AbstractSpreadsheet s = new Spreadsheet();
-            s.SetCellContents("B1", "A2");
-            s.SetCellContents("C3", "Hello");
+            s.SetContentsOfCell("B1", "A2");
+            s.SetContentsOfCell("C3", "Hello");
 
             List<string> names = new List<string>(s.GetNamesOfAllNonemptyCells());
             Assert.AreEqual("B1", names[0]);
@@ -216,9 +216,9 @@ namespace SpreadsheetTest
         public void MoreContents1()
         {
             AbstractSpreadsheet s = new Spreadsheet();
-            s.SetCellContents("A1", new Formula("C1+C2"));
-            s.SetCellContents("B1", new Formula("D1/D2"));
-            s.SetCellContents("C2", new Formula("B3*B4"));
+            s.SetContentsOfCell("A1", "=C1+C2");
+            s.SetContentsOfCell("B1", "=D1 /D2");
+            s.SetContentsOfCell("C2", "=B3*B4");
         }
         /// <summary>
         /// test get all null empty cell
@@ -227,9 +227,9 @@ namespace SpreadsheetTest
         public void MoreContents2()
         {
             AbstractSpreadsheet s = new Spreadsheet();
-            s.SetCellContents("A1", new Formula("C1+C2"));
-            s.SetCellContents("B1", new Formula("D1/D2"));
-            s.SetCellContents("C2", new Formula("B3*B4"));
+            s.SetContentsOfCell("A1", "=C1+C2");
+            s.SetContentsOfCell("B1", "=D1 /D2");
+            s.SetContentsOfCell("C2", "=B3*B4");
             Assert.AreEqual(s.GetCellContents("R3"), "");
         }
 
@@ -256,9 +256,9 @@ namespace SpreadsheetTest
         public void TestProtectedMethods3()
         {
             AbstractSpreadsheet s = new Spreadsheet();
-            s.SetCellContents("A1", new Formula("C1+C2"));
-            s.SetCellContents("B1", new Formula("D1/D2"));
-            s.SetCellContents("C2", new Formula("A1*B4"));
+            s.SetContentsOfCell("A1", "=C1+C2");
+            s.SetContentsOfCell("B1", "=D1 /D2");
+            s.SetContentsOfCell("C2", "=A1*B4");
         }
     }
 
