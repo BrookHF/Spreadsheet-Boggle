@@ -236,49 +236,53 @@ namespace SS
             // Create the XmlReader object.
             using (XmlReader reader = XmlReader.Create(sourse, settings))
             {
+                Regex oldIsValid = isValid;
                 while (reader.Read())
                 {
                     if (reader.IsStartElement())
                     {
-                        string newCell = "";
                         switch (reader.Name)
                         {
                             case "spreadsheet":
                                 // initialize spreadsheet
-                                Changed = false;
-                                dependencyGraph = new DependencyGraph();
-                                cellSet = new Dictionary<string, Cell>();
-                                break;
-
-                            case "IsValid":
-
-                                reader.Read();
-                                // if the IsValid string contained in source is not a valid C# regular expression, throws
-                                // a SpreadsheetReadException.
+                                this.Changed = false;
+                                this.dependencyGraph = new DependencyGraph();
+                                this.cellSet = new Dictionary<string, Cell>();
                                 try
                                 {
                                     //If the exception is not thrown, this regex is referred to below as oldIsValid.
-                                    Regex oldIsValid = new Regex(reader.Value);
+                                    oldIsValid = new Regex(reader.Value);
                                 }
                                 catch
                                 {
-                                    throw new SpreadsheetReadException("not a valid C# regular expression"); 
+                                    throw new SpreadsheetReadException("not a valid C# regular expression");
                                 }
                                 this.isValid = isValid;
                                 break;
 
                             case "cell":
-                                break;
 
-                            case "name":
-                                reader.Read();
-                                newCell = reader.Value;
-                                cellSet.Add(newCell, new Cell(newCell));
-                                break;
-
-                            case "contents":
-                                reader.Read();
-                                SetContentsOfCell(newCell, reader.Value);
+                                // Else if there is an invalid cell name or an invalid formula in the source, throws a 
+                                // SpreadsheetReadException.  (Use oldIsValid in place of IsValid in the definition of 
+                                // cell name validity.)
+                                if (!isValidCellName(reader["name"], oldIsValid))
+                                {
+                                    throw new SpreadsheetReadException("oldIsValid not match");
+                                }
+                                // Else if there is an invalid cell name or an invalid formula in the source, throws a
+                                // SpreadsheetVersionException.  (Use newIsValid in place of IsValid in the definition of
+                                // cell name validity.)
+                                if (!isValidCellName(reader["name"], this.isValid))
+                                {
+                                    throw new SpreadsheetVersionException("newIsValid not match");
+                                }
+                                // If there is a duplicate cell name in the source, throws a SpreadsheetReadException.
+                                // (Two cell names are duplicates if they are identical after being converted to upper case.)
+                                if (cellSet.ContainsKey(reader["name"]))
+                                {
+                                    throw new SpreadsheetReadException("duplicate cell name");
+                                }
+                                SetContentsOfCell(reader["name"], reader["contents"]);
                                 break;
                         }
                     }
@@ -321,7 +325,7 @@ namespace SS
         public override void Save(TextWriter dest)
         {
             // if the spreadsheet is changed after created or saved, save the spreadsheet to XML file
-            if(Changed == true)
+            if(true)
             {
                 using (XmlWriter writer = XmlWriter.Create(dest))
                 {
@@ -329,15 +333,15 @@ namespace SS
                     writer.WriteStartElement("spreadsheet");
 
                     // The value of the IsValid attribute is IsValid.ToString()
-                    writer.WriteElementString("IsValid", isValid.ToString());
+                    writer.WriteAttributeString("IsValid", isValid.ToString());
 
                     // Add each none empty cell
                     foreach(string str in GetNamesOfAllNonemptyCells())
                     {
                         writer.WriteStartElement("cell");
-                        writer.WriteElementString("name", str);
-                        writer.WriteElementString("contents", cellSet[str].ToString());
-                        writer.WriteEndElement();
+                        writer.WriteAttributeString("name", str);
+                        writer.WriteAttributeString("contents", cellSet[str].ToString());
+                        writer.WriteFullEndElement();
                     }
 
                     writer.WriteEndElement();
@@ -356,31 +360,44 @@ namespace SS
         /// </summary>
         public override object GetCellValue(String name)
         {
+            name = name.ToUpper();
             // If name is null or invalid, throws an InvalidNameException.
-            if (name == null || !isValidCellName(name))
+            if (name == null || !isValidCellName(name, this.isValid))
             {
                 throw new InvalidNameException();
+            }
+
+            // If cell does not exist add the cell as empty cell
+            if (!cellSet.ContainsKey(name))
+            {
+                cellSet.Add(name, new Cell(name));
+                return "";
             }
 
             if(cellSet[name].content is Formula)
             {
                 Formula f = (Formula)cellSet[name].content;
+                foreach (string v in f.GetVariables())
+                {
+                    if (!cellSet.ContainsKey(v) || !(cellSet[v].value is double))
+                    {
+                        return new FormulaError();
+                    }
+                }
                 // set cell value
-                try
-                {
-                    cellSet[name].value = f.Evaluate(s => CellValueLookup(s));
+                try{
+                    return f.Evaluate(s => CellValueLookup(s));
                 }
-                catch (UndefinedVariableException e)
+                catch
                 {
-                    cellSet[name].value = new FormulaError(e.ToString());
+                    return new FormulaError();
                 }
+                
             }
             else
             {
-                cellSet[name].value = cellSet[name].content;
+                return cellSet[name].content;
             }
-
-            return null;
         }
 
 
@@ -408,10 +425,13 @@ namespace SS
         public override object GetCellContents(String name)
 
         {
-            if(name == null || !isValidCellName(name))
+            
+            if(name == null || !isValidCellName(name.ToUpper(), this.isValid))
             {
                 throw new InvalidNameException();
             }
+
+            name = name.ToUpper();
             if (!cellSet.ContainsKey(name))
             {
                 cellSet.Add(name, new Cell(name));
@@ -454,6 +474,7 @@ namespace SS
         /// </summary>
         public override ISet<String> SetContentsOfCell(String name, String content)
         {
+            
             //If content is null, throws an ArgumentNullException.
             if(content == null)
             {
@@ -461,10 +482,13 @@ namespace SS
             }
 
             //if name is null or invalid, throws an InvalidNameException.
-            if(name == null || !isValidCellName(name))
+            if(name == null || !isValidCellName(name.ToUpper(), this.isValid))
             {
                 throw new InvalidNameException();
             }
+            name = name.ToUpper();
+            //label the sheet have changed
+            Changed = true;
 
             //if content parses as a double, the contents of the named cell becomes that double.
             double number = 0;
@@ -474,9 +498,9 @@ namespace SS
             }
 
             //if content begins with the character '='
-            if (content[0] == '=')
+            if (content.Length>0 && content[0] == '=')
             {
-                return SetCellContents(name, new Formula(content.Substring(1), s => s.ToUpper(), s => isValidCellName(s)));
+                return SetCellContents(name, new Formula(content.Substring(1), s => s.ToUpper(), s => isValidCellName(s, this.isValid)));
             }
 
             //Otherwise, the contents of the named cell becomes content.
@@ -496,7 +520,7 @@ namespace SS
         protected override ISet<String> SetCellContents(String name, double number)
         {
             // if name is null or invalid, throws an InvalidNameException.
-            if (name == null || !isValidCellName(name))
+            if (name == null || !isValidCellName(name, this.isValid))
             {
                 throw new InvalidNameException();
             }
@@ -509,12 +533,12 @@ namespace SS
 
             // remove dependees for new content
             dependencyGraph.ReplaceDependents(name,new HashSet<string>());
-
+            
+            // set cell content
+            cellSet[name].content = number;
+            
             //using result set to put name plus the names of all other cells whose value depends
             ISet<string> result = new HashSet<string>(GetCellsToRecalculate(name));
-
-            // set cell content and value
-            cellSet[name].content = number;
 
             return result;
         }
@@ -540,7 +564,7 @@ namespace SS
             }
 
             //if name is null or invalid, throws an InvalidNameException.
-            if (name == null || !isValidCellName(name))
+            if (name == null || !isValidCellName(name, this.isValid))
             {
                 throw new InvalidNameException();
             }
@@ -553,14 +577,12 @@ namespace SS
 
             // remove dependees for new content
             dependencyGraph.ReplaceDependents(name, new HashSet<string>());
-
-            //using result set to put name plus the names of all other cells whose value depends
-            ISet<string> result = new HashSet<string>(GetCellsToRecalculate(name));
-
+            
             //set content and value
             cellSet[name].content = text;
-
             
+            //using result set to put name plus the names of all other cells whose value depends
+            ISet<string> result = new HashSet<string>(GetCellsToRecalculate(name));
 
             return result;
         }
@@ -581,7 +603,7 @@ namespace SS
         protected override ISet<String> SetCellContents(String name, Formula formula)
         {
             //if name is null or invalid, throws an InvalidNameException.
-            if (name == null || !isValidCellName(name))
+            if (name == null || !isValidCellName(name, this.isValid))
             {
                 throw new InvalidNameException();
             }
@@ -597,8 +619,10 @@ namespace SS
 
             //using result set to put name plus the names of all other cells whose value depends
             ISet<string> result = new HashSet<string>(GetCellsToRecalculate(name));
+
+            // set cell's content and value
             cellSet[name].content = formula;
-            
+            cellSet[name].value = GetCellValue(name);
             return result;
         }
 
@@ -631,16 +655,20 @@ namespace SS
             }
 
             // if name isn't a valid cell name, throws an InvalidNameException.
-            if (!isValidCellName(name))
+            if (!isValidCellName(name, this.isValid))
             {
                 throw new InvalidNameException();
             }
-
-            // update the value
+            
+            ISet<string> result = new HashSet<string>();
             cellSet[name].value = GetCellValue(name);
-
-            // unit dependees and dependents of one cell
-            ISet<string> result = new HashSet<string>(dependencyGraph.GetDependees(name));
+            foreach (string str in dependencyGraph.GetDependees(name))
+            {
+                // update the value
+                cellSet[str].value = GetCellValue(str);
+                // unit dependees of one cell
+                result.Add(str);
+            }
 
             return result;
         }
@@ -652,7 +680,7 @@ namespace SS
         /// <returns></returns>
         private double CellValueLookup(string var)
         {
-            if (!(cellSet[var].value is double))
+            if (!cellSet.ContainsKey(var) || !(cellSet[var].value is double))
             {
                 throw new UndefinedVariableException("variable not defined");
             }
@@ -666,10 +694,22 @@ namespace SS
         /// zero or more digits.
         /// </summary>
         /// <param name="cellName"></param>
+        /// <param name="isValidRegex"></param>
         /// <returns></returns>
-        private bool isValidCellName(string cellName)
+        private bool isValidCellName(string cellName, Regex isValidRegex)
         {
-            return Regex.IsMatch(cellName, "^[a-zA-z]{1,2}[1-9]{1}[0-9]*$") && isValid.IsMatch(cellName.ToUpper());
+            // if the cell name don't fit the basic contain, return false
+            if(!Regex.IsMatch(cellName, "^[a-zA-z]{1,2}[1-9]{1}[0-9]*$"))
+            {
+                return false;
+            }
+
+            // if the isValid null, return true;
+            if(isValidRegex == null)
+            {
+                return true;
+            }
+            return isValidRegex.IsMatch(cellName.ToUpper());
         }
     }
 }

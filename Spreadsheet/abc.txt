@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><spreadsheet IsValid=".*"><cell name="A2" contents="2.35"></cell><cell name="B4" contents="fang"></cell><cell name="C1" contents="=1+1"></cell></spreadsheet>
