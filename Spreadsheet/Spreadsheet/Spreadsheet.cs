@@ -381,7 +381,7 @@ namespace SS
                 {
                     if (!cellSet.ContainsKey(v) || !(cellSet[v].value is double))
                     {
-                        return new FormulaError();
+                        return new FormulaError("variable's value is not exist or double");
                     }
                 }
                 // set cell value
@@ -390,7 +390,7 @@ namespace SS
                 }
                 catch
                 {
-                    return new FormulaError();
+                    return new FormulaError("problem evaluate formular");
                 }
                 
             }
@@ -519,11 +519,6 @@ namespace SS
         /// </summary>
         protected override ISet<String> SetCellContents(String name, double number)
         {
-            // if name is null or invalid, throws an InvalidNameException.
-            if (name == null || !isValidCellName(name, this.isValid))
-            {
-                throw new InvalidNameException();
-            }
 
             // add cell if cell is not exited
             if (!cellSet.ContainsKey(name))
@@ -557,17 +552,6 @@ namespace SS
         /// </summary>
         protected override ISet<String> SetCellContents(String name, String text)
         {
-            //If text is null, throws an ArgumentNullException.
-            if (text == null)
-            {
-                throw new ArgumentNullException();
-            }
-
-            //if name is null or invalid, throws an InvalidNameException.
-            if (name == null || !isValidCellName(name, this.isValid))
-            {
-                throw new InvalidNameException();
-            }
 
             //add the cell if the cell is not exist yet
             if (!cellSet.ContainsKey(name))
@@ -602,11 +586,6 @@ namespace SS
         /// </summary>
         protected override ISet<String> SetCellContents(String name, Formula formula)
         {
-            //if name is null or invalid, throws an InvalidNameException.
-            if (name == null || !isValidCellName(name, this.isValid))
-            {
-                throw new InvalidNameException();
-            }
 
             //if name is null or invalid, throws an InvalidNameException.
             if (!cellSet.ContainsKey(name))
@@ -680,10 +659,10 @@ namespace SS
         /// <returns></returns>
         private double CellValueLookup(string var)
         {
-            if (!cellSet.ContainsKey(var) || !(cellSet[var].value is double))
-            {
-                throw new UndefinedVariableException("variable not defined");
-            }
+            //if (!cellSet.ContainsKey(var) || !(cellSet[var].value is double))
+            //{
+            //    throw new UndefinedVariableException("variable not defined");
+            //}
             return (double)cellSet[var].value;
         }
 
