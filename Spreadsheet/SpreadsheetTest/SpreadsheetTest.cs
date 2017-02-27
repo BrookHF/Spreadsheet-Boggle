@@ -293,7 +293,7 @@ namespace SpreadsheetTest
             s.SetContentsOfCell("b1", "=1+2");
             s.SetContentsOfCell("c2", "=R2");
             Assert.IsInstanceOfType(s.GetCellValue("C2"), typeof(FormulaError));
-            Assert.AreEqual(s.GetCellValue("A1"), 3);
+            Assert.AreEqual(s.GetCellValue("A1"), 3.0);
         }
         [TestMethod]
         public void TestNewConstructor5()
@@ -396,7 +396,7 @@ namespace SpreadsheetTest
             AbstractSpreadsheet ss = new Spreadsheet(new StringReader(sw.ToString()), new Regex(".*"));
         }
         [TestMethod]
-        [ExpectedException(typeof(SpreadsheetVersionException))]
+        [ExpectedException(typeof(SpreadsheetReadException))]
         public void TestNewConstructor14()
         {
             StringWriter sw = new StringWriter();
