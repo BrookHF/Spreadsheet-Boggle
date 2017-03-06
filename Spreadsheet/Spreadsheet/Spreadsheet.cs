@@ -678,7 +678,7 @@ namespace SS
         private bool isValidCellName(string cellName, Regex isValidRegex)
         {
             // if the cell name don't fit the basic contain, return false
-            if(!Regex.IsMatch(cellName, "^[a-zA-z]{1,2}[1-9]{1}[0-9]*$"))
+            if(!Regex.IsMatch(cellName, "^[a-zA-z]+[1-9]{1}[0-9]*$"))
             {
                 return false;
             }
