@@ -34,6 +34,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -53,6 +55,14 @@
     <ProjectReference Include="..\Formula\Formula.csproj">
       <Project>{d43d998c-9797-4cf4-9bb0-6de22753849a}</Project>
       <Name>Formula</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SpreadsheetDemo\SpreadsheetDemo.csproj">
+      <Project>{7069d83a-3933-4135-922b-76f754740a00}</Project>
+      <Name>SpreadsheetDemo</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SpreadsheetPanel\SpreadsheetPanel.csproj">
+      <Project>{f31299dc-288f-4e46-a3af-6bf461b21c79}</Project>
+      <Name>SpreadsheetPanel</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
