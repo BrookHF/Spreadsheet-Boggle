@@ -36,7 +36,6 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Name = "SpreadsheetPanel";
             this.Size = new System.Drawing.Size(408, 251);
-            this.Load += new System.EventHandler(this.SpreadsheetPanel_Load);
             this.ResumeLayout(false);
 
         }

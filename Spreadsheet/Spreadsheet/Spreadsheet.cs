@@ -251,7 +251,7 @@ namespace SS
                                 try
                                 {
                                     //If the exception is not thrown, this regex is referred to below as oldIsValid.
-                                    oldIsValid = new Regex(reader.Value);
+                                    oldIsValid = new Regex(reader["IsValid"]);
                                 }
                                 catch
                                 {

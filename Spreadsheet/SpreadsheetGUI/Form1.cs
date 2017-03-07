@@ -14,6 +14,9 @@ namespace SpreadsheetGUI
 {
     public partial class Form1 : Form
     {
+        Spreadsheet backingSS = new Spreadsheet();
+        
+
         public Form1()
         {
             InitializeComponent();
@@ -30,31 +33,6 @@ namespace SpreadsheetGUI
         }
 
         private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
-        {
-
-        }
-
-        private void label1_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label3_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void cellSelectionChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void cellNameDisplay_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void cellValueDisplay_TextChanged(object sender, EventArgs e)
         {
 
         }
