@@ -45,6 +45,7 @@
             this.contentsLabel = new System.Windows.Forms.Label();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.spreadsheetPanel1 = new SSGui.SpreadsheetPanel();
+            this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -88,8 +89,9 @@
             // fileSave
             // 
             this.fileSave.Name = "fileSave";
-            this.fileSave.Size = new System.Drawing.Size(120, 26);
+            this.fileSave.Size = new System.Drawing.Size(181, 26);
             this.fileSave.Text = "Save";
+            this.fileSave.Click += new System.EventHandler(this.fileSave_Click);
             // 
             // fileClose
             // 
@@ -112,12 +114,14 @@
             this.helpSelection.Name = "helpSelection";
             this.helpSelection.Size = new System.Drawing.Size(222, 26);
             this.helpSelection.Text = "Changing Selection";
+            this.helpSelection.Click += new System.EventHandler(this.helpSelection_Click);
             // 
             // helpCellContents
             // 
             this.helpCellContents.Name = "helpCellContents";
             this.helpCellContents.Size = new System.Drawing.Size(222, 26);
             this.helpCellContents.Text = "Editing Cell Contents";
+            this.helpCellContents.Click += new System.EventHandler(this.helpCellContents_Click);
             // 
             // cellValueDisplay
             // 
@@ -137,7 +141,6 @@
             this.cellNameDisplay.ReadOnly = true;
             this.cellNameDisplay.Size = new System.Drawing.Size(132, 22);
             this.cellNameDisplay.TabIndex = 3;
-            this.cellNameDisplay.TextChanged += new System.EventHandler(this.cellNameDisplay_TextChanged);
             // 
             // cellContentsDisplay
             // 
@@ -146,7 +149,7 @@
             this.cellContentsDisplay.Name = "cellContentsDisplay";
             this.cellContentsDisplay.Size = new System.Drawing.Size(132, 22);
             this.cellContentsDisplay.TabIndex = 4;
-            this.cellContentsDisplay.TextChanged += new System.EventHandler(this.cellContentsDisplay_TextChanged);
+            this.cellContentsDisplay.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.cellContentsDisplay_KeyPress);
             // 
             // cellNameLabel
             // 
@@ -191,9 +194,6 @@
             this.spreadsheetPanel1.TabIndex = 0;
             this.spreadsheetPanel1.SelectionChanged += new SSGui.SelectionChangedHandler(this.spreadsheetPanel1_SelectionChanged);
             this.spreadsheetPanel1.Load += new System.EventHandler(this.spreadsheetPanel1_Load_1);
-            this.spreadsheetPanel1.Click += new System.EventHandler(this.spreadsheetPanel1_Click);
-            this.spreadsheetPanel1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.spreadsheetPanel1_MouseClick);
-            this.spreadsheetPanel1.MouseEnter += new System.EventHandler(this.spreadsheetPanel1_MouseEnter);
             // 
             // Form1
             // 
@@ -240,6 +240,7 @@
         private System.Windows.Forms.Label valueLabel;
         private System.Windows.Forms.Label contentsLabel;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
+        private System.Windows.Forms.SaveFileDialog saveFileDialog1;
     }
 }
 
