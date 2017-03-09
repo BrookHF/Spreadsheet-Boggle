@@ -21,12 +21,15 @@ namespace SpreadsheetGUI
         private AbstractSpreadsheet backingSS;
 
         /// <summary>
-        /// Begins controlling window.
+        /// Begins controlling a new window.
         /// </summary>
         public Controller(ISpreadsheet window) : this(window,null)
         {
         }
 
+        /// <summary>
+        /// Begins controlling a new window by loading spreadsheet from filePath.
+        /// </summary>
         public Controller(ISpreadsheet window, string filePath)
         {
             this.window = window;
@@ -39,7 +42,7 @@ namespace SpreadsheetGUI
                 this.backingSS = new Spreadsheet(new StreamReader(filePath), new Regex(""));
             }
             
-            //window.FileChosenEvent += HandleFileChosen;
+            //Gets event from the window and handles them with controller methods.
             window.FileCloseEvent += HandleClose;
             window.FileNewEvent += HandleNew;
             window.SelectionChangedEvent += HandleSelectionChanged;
@@ -50,7 +53,11 @@ namespace SpreadsheetGUI
             window.FileOpenEvent += HandleFileOpen;
             window.FormCloseEvent += HandleFormClose;
     }
-
+        /// <summary>
+        /// Handles the FormCloseEvent, if the spreadhseet is changed then uses UnsavedData method to 
+        /// ask user if they want to continue and lose unsaved changes, otherwise it continues with the close.
+        /// </summary>
+        /// <param name="e"></param>
         private void HandleFormClose(FormClosingEventArgs e)
         {
             if(backingSS.Changed == true)
@@ -59,6 +66,10 @@ namespace SpreadsheetGUI
             }
         }
 
+        /// <summary>
+        /// Handles the file save event, creates a save dialog, if file name isn't empty or null, it will use the backing 
+        /// Spreadsheet's save method to generate a file.
+        /// </summary>
         private void HandleFileSave()
         {
             string fileName = window.SaveDialog();
@@ -71,12 +82,16 @@ namespace SpreadsheetGUI
             }
         }
 
+        /// <summary>
+        /// Handles the file open event, takes a file name as parameter and calls the OpenSaved method on it. If it doesnt 
+        /// successfully open the file, prints a message to notify user.
+        /// </summary>
+        /// <param name="fileName"></param>
         private void HandleFileOpen(string fileName)
         {
             try
             {
-                window.OpenSaved(fileName);
-                
+                window.OpenSaved(fileName);           
             }
             catch 
             {
@@ -84,6 +99,12 @@ namespace SpreadsheetGUI
             }
         }
 
+        /// <summary>
+        /// Handles the KeyPress event when typing in the Content display box. If the "enter" key is pressed, 
+        /// updates the contents of the cell to the string in the display box. If this results in any exceptions, 
+        /// it will instead print an informative message based on the exception.
+        /// </summary>
+        /// <param name="key"></param>
         private void HandleKeyPress(char key)
         {
             if (Regex.IsMatch("" + key, "\r"))
@@ -111,13 +132,15 @@ namespace SpreadsheetGUI
                 }
             }
         }
+
+        /// <summary>
+        /// Handles the panel load event, updates the display boxes based on the selected cell when the panel loads. 
+        /// </summary>
         private void HandlePanelLoad()
         {
             window.SetCellNameDisplay(window.GetSelectedCellName());
             window.SetCellValueDisplay(backingSS.GetCellValue(window.GetSelectedCellName()).ToString());
-            window.SetCellContentsDisplay(backingSS.GetCellContents(window.GetSelectedCellName()).ToString());
-
-
+            window.SetCellContentsDisplay(backingSS.GetCellContents(window.GetSelectedCellName()).ToString());     
         }
 
         /// <summary>
@@ -128,6 +151,9 @@ namespace SpreadsheetGUI
             window.DoClose();           
         }
 
+        /// <summary>
+        /// Handles the SelectionChanged event, updates the values displayed in the Panel and the display boxes.
+        /// </summary>
         private void HandleSelectionChanged()
         {
             GetPanelUpdated();
@@ -161,6 +187,8 @@ namespace SpreadsheetGUI
             // update text boxes
             window.SetCellNameDisplay(window.GetSelectedCellName());
             window.SetCellValueDisplay(backingSS.GetCellValue(window.GetSelectedCellName()).ToString());
+
+            //if the contents are a formula, then concatinate "=" before the rest of the formula for the display.
             if (backingSS.GetCellContents(window.GetSelectedCellName()) is Formula)
             {
                 window.SetCellContentsDisplay("=" + backingSS.GetCellContents(window.GetSelectedCellName()).ToString());
@@ -172,11 +200,21 @@ namespace SpreadsheetGUI
 
         }
 
-
+        /// <summary>
+        /// Helper method to return the collumn number from the input cell name.
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns></returns>
         private int getCol(string s)
         {
             return (s[0] - 'A');
         }
+
+        /// <summary>
+        /// Helper method to obtain row number from a cell name.
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns></returns>
         private int getRow(string s)
         {
             int result;

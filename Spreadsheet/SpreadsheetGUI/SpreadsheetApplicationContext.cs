@@ -55,7 +55,7 @@ namespace SpreadsheetGUI
 
         public void RunNew(string filePath)
         {
-            // Create the window and the controller
+            // Create the window and the controller using the file path passed in.
             Form1 window = new Form1();
             new Controller(window, filePath);
 
