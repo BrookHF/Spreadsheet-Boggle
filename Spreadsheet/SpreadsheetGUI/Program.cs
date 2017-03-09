@@ -17,6 +17,7 @@ namespace SpreadsheetGUI
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
+            //uses the spreadsheet application context to run a new window so that we can keep track of how many windows are open.
             var context = SpreadsheetApplicationContext.GetContext();
             SpreadsheetApplicationContext.GetContext().RunNew();
             Application.Run(context);
