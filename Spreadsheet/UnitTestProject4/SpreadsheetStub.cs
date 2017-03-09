@@ -1,4 +1,5 @@
 ﻿using SpreadsheetGUI;
+using SS;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -139,7 +140,7 @@ namespace SpreadsheetGUITest
         }
 
         private string[,] panelGrid = new string[99,26]; 
-        public string[,] PanelGrid { get; private set; }
+        public string[,] PanelGrid { get { return panelGrid; } private set { panelGrid = value; } }
         public void SetValueOfPanel(int col, int row, string value)
         {
             PanelGrid[col, row] = value;

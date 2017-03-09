@@ -12,7 +12,7 @@ using System.IO;
 
 namespace SpreadsheetGUI
 {
-    class Controller 
+    public class Controller 
     {
         // The window being controlled
         private ISpreadsheet window;
