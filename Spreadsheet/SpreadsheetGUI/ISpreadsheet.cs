@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace SpreadsheetGUI
 {
-    interface ISpreadsheet
+    public interface ISpreadsheet
     {
         /// <summary>
         /// Event thrown to close file.
