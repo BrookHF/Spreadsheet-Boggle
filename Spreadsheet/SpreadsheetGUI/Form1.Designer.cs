@@ -43,7 +43,6 @@
             this.cellNameLabel = new System.Windows.Forms.Label();
             this.valueLabel = new System.Windows.Forms.Label();
             this.contentsLabel = new System.Windows.Forms.Label();
-            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.spreadsheetPanel1 = new SSGui.SpreadsheetPanel();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
@@ -84,7 +83,7 @@
             // fileOpen
             // 
             this.fileOpen.Name = "fileOpen";
-            this.fileOpen.Size = new System.Drawing.Size(181, 26);
+            this.fileOpen.Size = new System.Drawing.Size(120, 26);
             this.fileOpen.Text = "Open";
             this.fileOpen.Click += new System.EventHandler(this.fileOpen_Click);
             // 
@@ -241,7 +240,6 @@
         private System.Windows.Forms.Label cellNameLabel;
         private System.Windows.Forms.Label valueLabel;
         private System.Windows.Forms.Label contentsLabel;
-        private System.ComponentModel.BackgroundWorker backgroundWorker1;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
     }

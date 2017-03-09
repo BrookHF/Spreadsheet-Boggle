@@ -30,6 +30,7 @@ namespace SpreadsheetGUI
         public event Action FileSaveEvent;
         public event Action FormLoadEvent;
         public event Action<string> FileOpenEvent;
+        public event Action<FormClosingEventArgs> FormCloseEvent;
 
         private void fileNew_Click(object sender, EventArgs e)
         {
@@ -119,7 +120,7 @@ namespace SpreadsheetGUI
             saveFileDialog1.Filter = "Spreadsheet files (*.ss)|*.ss|All files (*.*)|*.*";
             saveFileDialog1.Title = "Save Spreadsheet File";
             saveFileDialog1.ShowDialog();
-    
+            
             return saveFileDialog1.FileName;
         }
         public void SetCellNameDisplay(string name)
@@ -184,9 +185,18 @@ namespace SpreadsheetGUI
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if(FileCloseEvent != null)
+            if(FormCloseEvent != null)
             {
-                FileCloseEvent();
+                FormCloseEvent(e);
+            }
+
+        }
+        public void UnsavedData(FormClosingEventArgs e)
+        {
+            var result = MessageBox.Show("Unsaved data will be lost if you continue with this operation.", "Warning", MessageBoxButtons.OKCancel);
+
+            if (result == DialogResult.Cancel)
+            {
                 e.Cancel = true;
             }
         }

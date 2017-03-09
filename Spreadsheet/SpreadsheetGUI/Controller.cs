@@ -48,16 +48,27 @@ namespace SpreadsheetGUI
             window.FormLoadEvent += HandleSelectionChanged;
             window.FileSaveEvent += HandleFileSave;
             window.FileOpenEvent += HandleFileOpen;
-        }
+            window.FormCloseEvent += HandleFormClose;
+    }
 
+        private void HandleFormClose(FormClosingEventArgs e)
+        {
+            if(backingSS.Changed == true)
+            {
+                window.UnsavedData(e);
+            }
+        }
 
         private void HandleFileSave()
         {
-            if (window.SaveDialog() != null)
+            string fileName = window.SaveDialog();
+            if (fileName != null)
             {
-                backingSS.Save(File.CreateText(window.SaveDialog()));
+                if(fileName != "")
+                {
+                    backingSS.Save(File.CreateText(fileName));
+                }
             }
-            
         }
 
         private void HandleFileOpen(string fileName)
@@ -67,9 +78,9 @@ namespace SpreadsheetGUI
                 window.OpenSaved(fileName);
                 
             }
-            catch (Exception ex)
+            catch 
             {
-                window.PrintMessage("Unable to open file\n" + ex);
+                window.PrintMessage("Unable to open file, invalid File type.\n");
             }
         }
 
@@ -77,9 +88,27 @@ namespace SpreadsheetGUI
         {
             if (Regex.IsMatch("" + key, "\r"))
             {
-                backingSS.SetContentsOfCell(window.GetSelectedCellName(), window.GetCellContentsDisplay());
-                GetPanelUpdated();
-                GetTextBoxUpdated();
+                try
+                {
+                    backingSS.SetContentsOfCell(window.GetSelectedCellName(), window.GetCellContentsDisplay());
+                    GetPanelUpdated();
+                    GetTextBoxUpdated();
+                }
+                catch(Exception e)
+                {
+                    if(e is CircularException)
+                    {
+                        window.PrintMessage("This formula will result in a circular dependency.");
+                    }
+                    else if(e is FormulaFormatException)
+                    {
+                        window.PrintMessage("Invalid Formula, cannot contain: " + e.Message);
+                    }
+                    else
+                    {
+                        window.PrintMessage(e.Message);
+                    }
+                }
             }
         }
         private void HandlePanelLoad()
@@ -95,22 +124,8 @@ namespace SpreadsheetGUI
         /// Handles a request to close the window
         /// </summary>
         private void HandleClose()
-        {
-            if (backingSS.Changed)
-            {
-                var result = MessageBox.Show("Unsaved data will be lost if you continue with this operation.", "Warning", MessageBoxButtons.OKCancel);
-                
-                if (result == DialogResult.OK)
-                {
-                    window.DoClose();
-                }
-            }
-            else
-            {
-                window.DoClose();
-            }
-
-            
+        {    
+            window.DoClose();           
         }
 
         private void HandleSelectionChanged()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace SpreadsheetGUI
 {
@@ -17,6 +18,7 @@ namespace SpreadsheetGUI
         event Action FileSaveEvent;
         event Action FormLoadEvent;
         event Action<string> FileOpenEvent;
+        event Action<FormClosingEventArgs> FormCloseEvent;
 
         void PrintMessage(string message);
         void OpenNew();
@@ -29,5 +31,6 @@ namespace SpreadsheetGUI
         void SetCellContentsDisplay(string content);
         void SetValueOfPanel(int col, int row, string value);
         void OpenSaved(string fileName);
+        void UnsavedData(FormClosingEventArgs e);
     }
 }
