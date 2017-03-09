@@ -73,6 +73,9 @@ namespace SpreadsheetGUITest
             bool cancel = true;
             FormClosingEventArgs e = new FormClosingEventArgs(reason, cancel);
 
+            stub.FireKeyPressEvent('1');
+            stub.FireKeyPressEvent('\r');
+
             stub.FireFormCloseEvent(e);
             Assert.IsTrue(stub.CalledSaveDialog);
         }
@@ -175,6 +178,13 @@ namespace SpreadsheetGUITest
         }
         [TestMethod]
         public void PublicFunctionTest11()
+        {
+            SpreadsheetStub stub = new SpreadsheetStub();
+            Controller controller = new Controller(stub);
+            stub.UnsavedData(new FormClosingEventArgs(new CloseReason(), true));
+            Assert.IsTrue(stub.CalledUnsavedData);
+        }
+
         public void TestKeyPressEnterEvent()
         {
             SpreadsheetStub stub = new SpreadsheetStub();
@@ -201,10 +211,6 @@ namespace SpreadsheetGUITest
         [TestMethod]
         public void TestSelectionChangedEvent()
         {
-            SpreadsheetStub stub = new SpreadsheetStub();
-            Controller controller = new Controller(stub);
-            stub.UnsavedData(new FormClosingEventArgs(new CloseReason(), true));
-            Assert.IsTrue(stub.CalledUnsavedData);
             SpreadsheetStub stub = new SpreadsheetStub();
             SpreadsheetGUI.Controller controller = new SpreadsheetGUI.Controller(stub);
         }

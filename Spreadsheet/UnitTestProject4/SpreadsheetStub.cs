@@ -92,11 +92,19 @@ namespace SpreadsheetGUITest
             Closed = true;
         }
 
+        private string cellContentsDisplay = "";
+        public string CellContentsDisplay { get { return cellContentsDisplay; } private set { cellContentsDisplay = value; } }
         public string GetCellContentsDisplay()
         {
             return CellContentsDisplay;
         }
-        public string SelectedCell { get; private set; }
+        public void SetCellContentsDisplay(string content)
+        {
+            CellContentsDisplay = content;
+        }
+        private string selectedCell = "A1";
+
+        public string SelectedCell { get { return selectedCell; } private set { selectedCell = value; } }
         public string GetSelectedCellName()
         {
             return SelectedCell;
@@ -123,11 +131,6 @@ namespace SpreadsheetGUITest
         {
             CalledSaveDialog = true;
             return "newFile.ss";
-        }
-        public string CellContentsDisplay{ get; private set; }
-        public void SetCellContentsDisplay(string content)
-        {
-            CellContentsDisplay = content;
         }
         public string CellNameDisplay { get; private set; }
         public void SetCellNameDisplay(string name)
