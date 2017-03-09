@@ -14,7 +14,7 @@ using System.IO;
 
 namespace SpreadsheetGUI
 {
-    public partial class Form1 : Form, ISpreadhseet
+    public partial class Form1 : Form, ISpreadsheet
     {
 
         public Form1()

@@ -15,7 +15,7 @@ namespace SpreadsheetGUI
     class Controller 
     {
         // The window being controlled
-        private ISpreadhseet window;
+        private ISpreadsheet window;
 
         // The model being used
         private AbstractSpreadsheet backingSS;
@@ -23,11 +23,11 @@ namespace SpreadsheetGUI
         /// <summary>
         /// Begins controlling window.
         /// </summary>
-        public Controller(ISpreadhseet window) : this(window,null)
+        public Controller(ISpreadsheet window) : this(window,null)
         {
         }
 
-        public Controller(ISpreadhseet window, string filePath)
+        public Controller(ISpreadsheet window, string filePath)
         {
             this.window = window;
             if(filePath == null)

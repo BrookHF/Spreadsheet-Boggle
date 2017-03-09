@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace SpreadsheetGUI
 {
-    interface ISpreadhseet
+    public interface ISpreadsheet
     {
 
         event Action FileCloseEvent;
