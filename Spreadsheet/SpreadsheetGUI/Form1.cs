@@ -14,149 +14,131 @@ using System.IO;
 
 namespace SpreadsheetGUI
 {
-    public partial class Form1 : Form
+    public partial class Form1 : Form, ISpreadhseet
     {
-        Spreadsheet backingSS = new Spreadsheet();
 
         public Form1()
         {
             InitializeComponent();
         }
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void spreadsheetPanel1_Load(object sender, EventArgs e)
-        {
-            
-        }
+        public event Action FileCloseEvent;
+        public event Action FileNewEvent;
+        public event Action SelectionChangedEvent;
+        public event Action PanelLoadEvent;
+        public event Action<char> KeyPressEvent;
+        public event Action FileSaveEvent;
+        public event Action FormLoadEvent;
+        public event Action<string> FileOpenEvent;
 
         private void fileNew_Click(object sender, EventArgs e)
         {
-            new Form1();
-        }
-
-        private void fileClose_Click(object sender, EventArgs e)
-        {
-            if(backingSS.Changed)
+            if (FileNewEvent != null)
             {
-                var result = System.Windows.Forms.MessageBox.Show("Unsaved data will be lost if you continue with this operation.", "Warning", MessageBoxButtons.OKCancel);
-                if(result == DialogResult.OK)
-                {
-                    Close();
-                }
+                FileNewEvent();
             }
         }
 
-        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        public void OpenNew()
         {
+            SpreadsheetApplicationContext.GetContext().RunNew();
+        }
 
+
+
+        private void fileClose_Click(object sender, EventArgs e)
+        {
+            if (FileCloseEvent != null)
+            {
+                FileCloseEvent();
+            }
+        }
+
+        public void DoClose()
+        {
+            Close();
         }
 
 
         private void spreadsheetPanel1_SelectionChanged(SSGui.SpreadsheetPanel sender)
         {
-            getTextBoxUpdated();
-        }
-
-
-
-        private void spreadsheetPanel1_Load_1(object sender, EventArgs e)
-        {
-            
-            cellNameDisplay.Text = getSelectedCellName();
-            cellValueDisplay.Text = backingSS.GetCellValue(getSelectedCellName()).ToString();
-
-        }
-
-        private void cellContentsDisplay_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            
-            if (Regex.IsMatch("" + e.KeyChar, "\r"))
+            if(SelectionChangedEvent != null)
             {
-                int col, row;
-                spreadsheetPanel1.GetSelection(out col, out row);
-                backingSS.SetContentsOfCell(getSelectedCellName(), cellContentsDisplay.Text);
-                getPanelUpdated();
-                getTextBoxUpdated();
-            }
-            
-            //cellContentsDisplay.Text = inputString;
-
-        }
-        /// <summary>
-        /// update all cell's value in panel.
-        /// </summary>
-        private void getPanelUpdated()
-        {
-            // update cell's value
-            foreach (string name in backingSS.GetNamesOfAllNonemptyCells())
-            {
-                spreadsheetPanel1.SetValue(getCol(name), getRow(name), backingSS.GetCellValue(name).ToString());
-            }
-        }
-        /// <summary>
-        /// update all text boxes in panel.
-        /// </summary>
-        private void getTextBoxUpdated()
-        {
-            // update text boxes
-            cellNameDisplay.Text = getSelectedCellName();
-            cellValueDisplay.Text = backingSS.GetCellValue(getSelectedCellName()).ToString();
-            if(backingSS.GetCellContents(getSelectedCellName()) is Formula)
-            {
-                cellContentsDisplay.Text = "=" + backingSS.GetCellContents(getSelectedCellName()).ToString();
-            }
-            else
-            {
-                cellContentsDisplay.Text = backingSS.GetCellContents(getSelectedCellName()).ToString();
+                SelectionChangedEvent();
             }
             
         }
-        private string getSelectedCellName()
+
+        public string GetSelectedCellName()
         {
             int col, row;
             spreadsheetPanel1.GetSelection(out col, out row);
             return (char)(col + 'A') + (row + 1).ToString();
         }
 
-        private int getCol(string s)
+        private void spreadsheetPanel1_Load_1(object sender, EventArgs e)
         {
-            return (s[0]-'A');
-        }
-        private int getRow(string s)
-        {
-            int result;
-            int.TryParse(s.Substring(1), out result);
-            return result-1;
+            if (PanelLoadEvent != null)
+            {
+                PanelLoadEvent();
+            }
+            
         }
 
+        private void cellContentsDisplay_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (KeyPressEvent != null)
+            {
+                KeyPressEvent(e.KeyChar);
+            }
+
+            
+            //cellContentsDisplay.Text = inputString;
+
+        }
+ 
+  
+        public string GetCellContentsDisplay()
+        {
+            return cellContentsDisplay.Text;
+        }
+
+
+
         private void fileSave_Click(object sender, EventArgs e)
+        {
+
+            if (FileSaveEvent != null)
+            {
+                FileSaveEvent();
+            }  
+        }
+
+        public string SaveDialog()
         {
             saveFileDialog1.Filter = "Spreadsheet files (*.ss)|*.ss|All files (*.*)|*.*";
             saveFileDialog1.Title = "Save Spreadsheet File";
             saveFileDialog1.ShowDialog();
-            while (saveFileDialog1.CheckFileExists)
-            {
-                var result = MessageBox.Show("This file will be overwritten, do you want to continue?", "Warning", MessageBoxButtons.OKCancel);
-                if (result == DialogResult.OK)
-                {
-                    break;
-                }
-                else
-                {
-                    saveFileDialog1.ShowDialog();
-                }
-            }
+    
+            return saveFileDialog1.FileName;
+        }
+        public void SetCellNameDisplay(string name)
+        {
+            cellNameDisplay.Text = name;
+        }
 
-            if (saveFileDialog1.FileName != null)
-            {
-                StreamWriter sw = File.CreateText(saveFileDialog1.FileName);
-                backingSS.Save(sw);
-            }
-            
+        public void SetCellValueDisplay(string value)
+        {
+            cellValueDisplay.Text = value;
+        }
+        public void SetCellContentsDisplay(string content)
+        {
+            cellContentsDisplay.Text = content;
+        }
+
+        public void SetValueOfPanel(int col, int row, string value)
+        {
+            spreadsheetPanel1.SetValue(col, row, value);
         }
 
         private void helpSelection_Click(object sender, EventArgs e)
@@ -167,6 +149,46 @@ namespace SpreadsheetGUI
         private void helpCellContents_Click(object sender, EventArgs e)
         {
             MessageBox.Show("In order to change the contents of a cell, you must select the cell, type the new contents in the upper right contents box, and press enter.", "Editing Cell Contents", MessageBoxButtons.OK);
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            if (FormLoadEvent != null)
+            {
+                FormLoadEvent();
+            }
+        }
+
+        private void fileOpen_Click(object sender, EventArgs e)
+        {
+            DialogResult result = openFileDialog1.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                if (FileOpenEvent != null)
+                {
+                    FileOpenEvent(openFileDialog1.FileName);
+                }
+            }        
+        }
+
+
+        public void PrintMessage(string message)
+        {
+            MessageBox.Show(message);
+        }
+
+        public void OpenSaved(string fileName)
+        {
+            SpreadsheetApplicationContext.GetContext().RunNew(fileName);
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if(FileCloseEvent != null)
+            {
+                FileCloseEvent();
+                e.Cancel = true;
+            }
         }
     }
 }

@@ -46,6 +46,7 @@
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.spreadsheetPanel1 = new SSGui.SpreadsheetPanel();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -83,13 +84,14 @@
             // fileOpen
             // 
             this.fileOpen.Name = "fileOpen";
-            this.fileOpen.Size = new System.Drawing.Size(120, 26);
+            this.fileOpen.Size = new System.Drawing.Size(181, 26);
             this.fileOpen.Text = "Open";
+            this.fileOpen.Click += new System.EventHandler(this.fileOpen_Click);
             // 
             // fileSave
             // 
             this.fileSave.Name = "fileSave";
-            this.fileSave.Size = new System.Drawing.Size(181, 26);
+            this.fileSave.Size = new System.Drawing.Size(120, 26);
             this.fileSave.Text = "Save";
             this.fileSave.Click += new System.EventHandler(this.fileSave_Click);
             // 
@@ -181,10 +183,6 @@
             this.contentsLabel.TabIndex = 7;
             this.contentsLabel.Text = "Contents";
             // 
-            // backgroundWorker1
-            // 
-            this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
-            // 
             // spreadsheetPanel1
             // 
             this.spreadsheetPanel1.Location = new System.Drawing.Point(16, 33);
@@ -193,7 +191,10 @@
             this.spreadsheetPanel1.Size = new System.Drawing.Size(1307, 767);
             this.spreadsheetPanel1.TabIndex = 0;
             this.spreadsheetPanel1.SelectionChanged += new SSGui.SelectionChangedHandler(this.spreadsheetPanel1_SelectionChanged);
-            this.spreadsheetPanel1.Load += new System.EventHandler(this.spreadsheetPanel1_Load_1);
+            // 
+            // openFileDialog1
+            // 
+            this.openFileDialog1.FileName = "openFileDialog1";
             // 
             // Form1
             // 
@@ -213,6 +214,7 @@
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
@@ -241,6 +243,7 @@
         private System.Windows.Forms.Label contentsLabel;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
+        private System.Windows.Forms.OpenFileDialog openFileDialog1;
     }
 }
 

@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace SpreadsheetGUI
 {
-    class SpreadsheetApplicationContext
+    class SpreadsheetApplicationContext : ApplicationContext
     {
         // Number of open forms
         private int windowCount = 0;
@@ -41,6 +42,22 @@ namespace SpreadsheetGUI
             // Create the window and the controller
             Form1 window = new Form1();
             new Controller(window);
+
+            // One more form is running
+            windowCount++;
+
+            // When this form closes, we want to find out
+            window.FormClosed += (o, e) => { if (--windowCount <= 0) ExitThread(); };
+
+            // Run the form
+            window.Show();
+        }
+
+        public void RunNew(string filePath)
+        {
+            // Create the window and the controller
+            Form1 window = new Form1();
+            new Controller(window, filePath);
 
             // One more form is running
             windowCount++;
