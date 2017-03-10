@@ -2,6 +2,9 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SpreadsheetGUI;
 using System.Windows.Forms;
+using SS;
+using System.IO;
+using System.Xml;
 
 namespace SpreadsheetGUITest
 {
@@ -77,7 +80,7 @@ namespace SpreadsheetGUITest
             stub.FireKeyPressEvent('\r');
 
             stub.FireFormCloseEvent(e);
-            Assert.IsTrue(stub.CalledSaveDialog);
+            Assert.IsTrue(stub.CalledUnsavedData);
         }
 
         /// <summary>
@@ -89,8 +92,11 @@ namespace SpreadsheetGUITest
             SpreadsheetStub stub = new SpreadsheetStub();
             SpreadsheetGUI.Controller controller = new SpreadsheetGUI.Controller(stub);
 
+            stub.FireKeyPressEvent('1');
+            stub.FireKeyPressEvent('\r');
+
             stub.FireFormLoadEvent();
-            Assert.IsTrue(stub.CalledGetPanelUpdated && stub.CalledGetTextBoxUpdated);
+            Assert.IsTrue(stub.CalledSetCellValueDisplay && stub.CalledSetCellNameDisplay && stub.CalledSetCellContentDisplay);
         }
 
         /// <summary>
@@ -104,6 +110,10 @@ namespace SpreadsheetGUITest
             stub.PrintMessage("hello");
             Assert.IsTrue(stub.CalledPrintMessage);
         }
+
+        /// <summary>
+        /// Tests OpenNew method.
+        /// </summary>
         [TestMethod]
         public void PublicFunctionTest2()
         {
@@ -112,6 +122,9 @@ namespace SpreadsheetGUITest
             stub.OpenNew();
             Assert.IsTrue(stub.CalledOpenNew);
         }
+        /// <summary>
+        /// Tests DoClose method.
+        /// </summary>
         [TestMethod]
         public void PublicFunctionTest3()
         {
@@ -120,6 +133,10 @@ namespace SpreadsheetGUITest
             stub.DoClose();
             Assert.IsTrue(stub.Closed);
         }
+
+        /// <summary>
+        /// Tests GetSelectedCellName method.
+        /// </summary>
         [TestMethod]
         public void PublicFunctionTest4()
         {
@@ -128,6 +145,10 @@ namespace SpreadsheetGUITest
             string selectedCellName = stub.GetSelectedCellName();
             Assert.AreEqual(selectedCellName, stub.SelectedCell);
         }
+
+        /// <summary>
+        /// Tests SaveDIalog method.
+        /// </summary>
         [TestMethod]
         public void PublicFunctionTest5()
         {
@@ -136,6 +157,10 @@ namespace SpreadsheetGUITest
             string saveDialog = stub.SaveDialog();
             Assert.AreEqual(saveDialog, "newFile.ss");
         }
+
+        /// <summary>
+        /// Tests SetCellNameDisplay method.
+        /// </summary>
         [TestMethod]
         public void PublicFunctionTest6()
         {
@@ -144,6 +169,10 @@ namespace SpreadsheetGUITest
             stub.SetCellNameDisplay("abc");
             Assert.AreEqual(stub.CellNameDisplay, "abc");
         }
+
+        /// <summary>
+        /// Tests SetCellValueDisplay method.
+        /// </summary>
         [TestMethod]
         public void PublicFunctionTest7()
         {
@@ -152,6 +181,10 @@ namespace SpreadsheetGUITest
             stub.SetCellValueDisplay("abc");
             Assert.AreEqual(stub.CellValueDisplay, "abc");
         }
+
+        /// <summary>
+        /// Tests SetCellContentsDisplay method.
+        /// </summary>
         [TestMethod]
         public void PublicFunctionTest8()
         {
@@ -160,6 +193,10 @@ namespace SpreadsheetGUITest
             stub.SetCellContentsDisplay("abc");
             Assert.AreEqual(stub.CellContentsDisplay, "abc");
         }
+
+        /// <summary>
+        /// Tests SetValueOfPanel method.
+        /// </summary>
         [TestMethod]
         public void PublicFunctionTest9()
         {
@@ -168,6 +205,10 @@ namespace SpreadsheetGUITest
             stub.SetValueOfPanel(1, 1, "hello");
             Assert.AreEqual(stub.PanelGrid[1,1], "hello");
         }
+
+        /// <summary>
+        /// Tests OpenSaved Method.
+        /// </summary>
         [TestMethod]
         public void PublicFunctionTest10()
         {
@@ -176,6 +217,10 @@ namespace SpreadsheetGUITest
             stub.OpenSaved("newFile.ss");
             Assert.IsTrue(stub.CalledOpenSaved);
         }
+
+        /// <summary>
+        /// Tests UnsavedData method.
+        /// </summary>
         [TestMethod]
         public void PublicFunctionTest11()
         {
@@ -183,12 +228,6 @@ namespace SpreadsheetGUITest
             Controller controller = new Controller(stub);
             stub.UnsavedData(new FormClosingEventArgs(new CloseReason(), true));
             Assert.IsTrue(stub.CalledUnsavedData);
-        }
-
-        public void TestKeyPressEnterEvent()
-        {
-            SpreadsheetStub stub = new SpreadsheetStub();
-            SpreadsheetGUI.Controller controller = new SpreadsheetGUI.Controller(stub);
         }
 
         /// <summary>
@@ -199,20 +238,48 @@ namespace SpreadsheetGUITest
         {
             SpreadsheetStub stub = new SpreadsheetStub();
             SpreadsheetGUI.Controller controller = new SpreadsheetGUI.Controller(stub);
+            stub.SetSelectedCellName("A1");
+            stub.FireSelectionChangedEvent();
+
+            stub.SetCellContentsDisplay("=A1+1");
+            stub.FireKeyPressEvent('\r');
+
+            stub.SetSelectedCellName("A2");
+            stub.FireSelectionChangedEvent();
+
+            stub.SetCellContentsDisplay("=A1+1");
+            stub.FireKeyPressEvent('\r');
+
+            Assert.IsTrue(stub.CalledPrintMessage);
         }
 
+        /// <summary>
+        /// Tests to make sure circular exception is thrown when key press enter results in circular dependency.
+        /// </summary>
+        [TestMethod]
+        public void TestKeyPressFormulaFormatExceptionEvent()
+        {
+            SpreadsheetStub stub = new SpreadsheetStub();
+            SpreadsheetGUI.Controller controller = new SpreadsheetGUI.Controller(stub);
+
+            
+            stub.SetCellContentsDisplay("=1&2");
+            stub.FireKeyPressEvent('\r');
+
+            Assert.IsTrue(stub.CalledPrintMessage);
+        }
+
+        /// <summary>
+        /// Tests to see if set value, name and content display methods were called if FirePanelLoadEvent is fired.
+        /// </summary>
         [TestMethod]
         public void TestPanelLoadEvent()
         {
             SpreadsheetStub stub = new SpreadsheetStub();
             SpreadsheetGUI.Controller controller = new SpreadsheetGUI.Controller(stub);
-        }
 
-        [TestMethod]
-        public void TestSelectionChangedEvent()
-        {
-            SpreadsheetStub stub = new SpreadsheetStub();
-            SpreadsheetGUI.Controller controller = new SpreadsheetGUI.Controller(stub);
+            stub.FirePanelLoadEvent();
+            Assert.IsTrue(stub.CalledSetCellValueDisplay && stub.CalledSetCellNameDisplay && stub.CalledSetCellContentDisplay);
         }
     }
 }

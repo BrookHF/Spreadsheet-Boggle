@@ -39,7 +39,7 @@ namespace SpreadsheetGUI
             }
             else
             {
-                this.backingSS = new Spreadsheet(new StreamReader(filePath), new Regex(""));
+                this.backingSS = new Spreadsheet(new StreamReader(filePath), new Regex("")); 
             }
             
             //Gets event from the window and handles them with controller methods.
@@ -95,7 +95,7 @@ namespace SpreadsheetGUI
             }
             catch 
             {
-                window.PrintMessage("Unable to open file, invalid File type.\n");
+                window.PrintMessage("Unable to open file, invalid File type.\n");  
             }
         }
 
@@ -115,11 +115,11 @@ namespace SpreadsheetGUI
                     GetPanelUpdated();
                     GetTextBoxUpdated();
                 }
-                catch(Exception e)
+                catch(Exception e) 
                 {
                     if(e is CircularException)
                     {
-                        window.PrintMessage("This formula will result in a circular dependency.");
+                        window.PrintMessage("This formula will result in a circular dependency."); 
                     }
                     else if(e is FormulaFormatException)
                     {
@@ -127,7 +127,7 @@ namespace SpreadsheetGUI
                     }
                     else
                     {
-                        window.PrintMessage(e.Message);
+                        window.PrintMessage(e.Message); 
                     }
                 }
             }
@@ -176,7 +176,7 @@ namespace SpreadsheetGUI
             // update cell's value
             foreach (string name in backingSS.GetNamesOfAllNonemptyCells())
             {
-                window.SetValueOfPanel(getCol(name), getRow(name), backingSS.GetCellValue(name).ToString());
+                window.SetValueOfPanel(getCol(name), getRow(name), backingSS.GetCellValue(name).ToString()); 
             }
         }
         /// <summary>
@@ -207,7 +207,7 @@ namespace SpreadsheetGUI
         /// <returns></returns>
         private int getCol(string s)
         {
-            return (s[0] - 'A');
+            return (s[0] - 'A'); 
         }
 
         /// <summary>
@@ -218,7 +218,7 @@ namespace SpreadsheetGUI
         private int getRow(string s)
         {
             int result;
-            int.TryParse(s.Substring(1), out result);
+            int.TryParse(s.Substring(1), out result); 
             return result - 1;
         }
     }

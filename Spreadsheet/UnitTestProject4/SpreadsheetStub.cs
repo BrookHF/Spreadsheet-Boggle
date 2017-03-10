@@ -96,11 +96,15 @@ namespace SpreadsheetGUITest
         public string CellContentsDisplay { get { return cellContentsDisplay; } private set { cellContentsDisplay = value; } }
         public string GetCellContentsDisplay()
         {
-            return CellContentsDisplay;
+            string temp = CellContentsDisplay;
+            CellContentsDisplay = "";
+            return temp;
         }
+        public bool CalledSetCellContentDisplay { get; private set; }
         public void SetCellContentsDisplay(string content)
         {
-            CellContentsDisplay = content;
+            CalledSetCellContentDisplay = true;
+            CellContentsDisplay += content;
         }
         private string selectedCell = "A1";
 
@@ -108,6 +112,10 @@ namespace SpreadsheetGUITest
         public string GetSelectedCellName()
         {
             return SelectedCell;
+        }
+        public void SetSelectedCellName(String cellName)
+        {
+            selectedCell = cellName;
         }
 
         public bool CalledOpenNew { get; private set; }
@@ -133,13 +141,17 @@ namespace SpreadsheetGUITest
             return "newFile.ss";
         }
         public string CellNameDisplay { get; private set; }
+        public bool CalledSetCellNameDisplay { get; private set; }
         public void SetCellNameDisplay(string name)
         {
+            CalledSetCellNameDisplay = true;
             CellNameDisplay = name;
         }
         public string CellValueDisplay { get; private set; }
+        public bool CalledSetCellValueDisplay { get; private set; }
         public void SetCellValueDisplay(string value)
         {
+            CalledSetCellValueDisplay = true;
             CellValueDisplay = value;
         }
 
@@ -157,18 +169,6 @@ namespace SpreadsheetGUITest
         }
 
         public bool CalledSaveDialog { get; private set; }
-
-        public bool CalledGetPanelUpdated { get; private set; }
-        private void GetPanelUpdated()
-        {
-            CalledGetPanelUpdated = true;
-        }
-
-        public bool CalledGetTextBoxUpdated { get; private set; }
-        private void GetTextBoxUpdated()
-        {
-            CalledGetTextBoxUpdated = true;
-        }
 
     }
 }
