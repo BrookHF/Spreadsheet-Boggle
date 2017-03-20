@@ -33,7 +33,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.LoginButton = new System.Windows.Forms.Button();
-            this.CancelButton = new System.Windows.Forms.Button();
+            this.CancelRegisterButton = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.SuspendLayout();
@@ -72,7 +72,7 @@
             // 
             // LoginButton
             // 
-            this.LoginButton.Location = new System.Drawing.Point(126, 149);
+            this.LoginButton.Location = new System.Drawing.Point(109, 149);
             this.LoginButton.Name = "LoginButton";
             this.LoginButton.Size = new System.Drawing.Size(75, 23);
             this.LoginButton.TabIndex = 4;
@@ -80,15 +80,15 @@
             this.LoginButton.UseVisualStyleBackColor = true;
             this.LoginButton.Click += new System.EventHandler(this.LoginButton_Click);
             // 
-            // CancelButton
+            // CancelRegisterButton
             // 
-            this.CancelButton.Location = new System.Drawing.Point(228, 149);
-            this.CancelButton.Name = "CancelButton";
-            this.CancelButton.Size = new System.Drawing.Size(75, 23);
-            this.CancelButton.TabIndex = 5;
-            this.CancelButton.Text = "Cancel";
-            this.CancelButton.UseVisualStyleBackColor = true;
-            this.CancelButton.Click += new System.EventHandler(this.CancelButton_Click);
+            this.CancelRegisterButton.Location = new System.Drawing.Point(228, 149);
+            this.CancelRegisterButton.Name = "CancelRegisterButton";
+            this.CancelRegisterButton.Size = new System.Drawing.Size(75, 23);
+            this.CancelRegisterButton.TabIndex = 5;
+            this.CancelRegisterButton.Text = "Cancel";
+            this.CancelRegisterButton.UseVisualStyleBackColor = true;
+            this.CancelRegisterButton.Click += new System.EventHandler(this.CancelRegisterButton_Click);
             // 
             // label3
             // 
@@ -115,7 +115,7 @@
             this.ClientSize = new System.Drawing.Size(466, 258);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
-            this.Controls.Add(this.CancelButton);
+            this.Controls.Add(this.CancelRegisterButton);
             this.Controls.Add(this.LoginButton);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
@@ -135,7 +135,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button LoginButton;
-        private System.Windows.Forms.Button CancelButton;
+        private System.Windows.Forms.Button CancelRegisterButton;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
     }

@@ -16,7 +16,9 @@ namespace BoggleClient
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new RegisterForm());
+            var view = new RegisterForm();
+            new Controller(view);
+            Application.Run(view);
         }
     }
 }

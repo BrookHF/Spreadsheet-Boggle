@@ -18,7 +18,7 @@ namespace BoggleClient
         }
 
         public event Action<string, string> LoginEvent;
-        public event Action CancelEvent;
+        public event Action CancelRegisterEvent;
         private void LoginButton_Click(object sender, EventArgs e)
         {
             if (LoginEvent != null)
@@ -27,12 +27,20 @@ namespace BoggleClient
             }
         }
 
-        private void CancelButton_Click(object sender, EventArgs e)
+        private void CancelRegisterButton_Click(object sender, EventArgs e)
         {
-            if (CancelEvent != null)
+            if (CancelRegisterEvent != null)
             {
-                CancelEvent();
+                CancelRegisterEvent();
             }
+        }
+
+        public void EnableControls(bool state)
+        {
+            LoginButton.Enabled = state;
+            DomainNameTextBox.ReadOnly = !state;
+            UserNameTextBox.ReadOnly = !state;
+            CancelRegisterButton.Enabled = !state;
         }
     }
 }
