@@ -19,11 +19,18 @@ namespace BoggleClient
         private HttpClient model;
 
         public CancellationTokenSource tokenSource { get; private set; }
-        public dynamic userToken { get; private set; }
+        private dynamic userToken;
+        public bool registerWindowIsHidden { get; private set; }
+        public object gameID { get; private set; }
+        public string gameState { get; private set; }
+
+        private Uri baseAddress;
 
         public Controller(RegisterForm registerWindow)
         {
             this.registerWindow = registerWindow;
+            this.playWindow = new PlayForm();
+            this.gameTimeWindow = new GameTimeForm();
             this.model = new HttpClient();
 
             registerWindow.LoginEvent += HandleLogin;
@@ -33,35 +40,86 @@ namespace BoggleClient
             //playWindow.EnterEvent += HandleEnter;
             //playWindow.LeaveEvent += HandleLeave;
             //playWindow.HelpGameRulesEvent += HandleHelpGameRules;
-            //playWindow.HelpHowToPlayEvent += HandleHelpHowToPlay;
 
-            //gameTimeWindow.PlayEvent += HandlePlay;
-            //gameTimeWindow.CancelJoinEvent += HandleCancelJoin;
+            gameTimeWindow.PlayEvent += HandlePlay;
+            gameTimeWindow.CancelJoinEvent += HandleCancelJoin;
         }
 
-        private void HandleCancelJoin()
+        private async void HandleCancelJoin()
         {
-            throw new NotImplementedException();
+            using (HttpClient client = CreateClient())
+            {
+                // Create the parameter
+                dynamic games = new ExpandoObject();
+                games.UserToken = userToken;
+
+                // Compose and send the request.
+                tokenSource = new CancellationTokenSource();
+                StringContent content = new StringContent(JsonConvert.SerializeObject(games), Encoding.UTF8, @"application/json");
+                HttpResponseMessage response = await client.PostAsync("games", content, tokenSource.Token);
+            }
         }
 
-        public Controller(PlayForm playWindow)
+        private async void HandlePlay(string gameTime)
         {
-            this.playWindow = playWindow;
-            this.model = new HttpClient();
-            
-            
-        }
-        public Controller(GameTimeForm gameTimeWindow)
-        {
-            this.gameTimeWindow = gameTimeWindow;
-            this.model = new HttpClient();
+            int time = 0;
+            if (!int.TryParse(gameTime, out time) || (time < 5 || time > 120))
+            {
+                MessageBox.Show("Must be integer between 5 to 120");
+                return;
+            }
+            registerWindow.EnableControls(false);
+            using (HttpClient client = CreateClient())
+            {
+                // Create the parameter
+                dynamic games = new ExpandoObject();
+                games.UserToken = userToken.ToString();
+                games.TimeLimit = time;
 
-            
-        }
+                // Compose and send the request.
+                tokenSource = new CancellationTokenSource();
+                StringContent content = new StringContent(JsonConvert.SerializeObject(games), Encoding.UTF8, @"application/json");
+                HttpResponseMessage response = await client.PostAsync("games", content, tokenSource.Token);
 
-        private void HandlePlay(string obj)
-        {
-            throw new NotImplementedException();
+                // Deal with the response
+                if (response.IsSuccessStatusCode)
+                {
+                    
+                    String result = response.Content.ReadAsStringAsync().Result;
+                    gameID = JsonConvert.DeserializeObject(result);
+                    MessageBox.Show("game ID:" + gameID);
+                    playWindow = new PlayForm();
+                    registerWindow.Hide();
+                    registerWindowIsHidden = true;
+                    //view.UserRegistered = true;
+                }
+                else
+                {
+                    MessageBox.Show("Login not successful!");
+                }
+                if(gameID != null)
+                {
+                    // Compose and send the request.
+                    tokenSource = new CancellationTokenSource();
+                    response = await client.GetAsync("games/" + gameID, tokenSource.Token);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        String result = response.Content.ReadAsStringAsync().Result;
+                        gameState = (string)JsonConvert.DeserializeObject(result);
+                    }
+                }
+                while (gameState == "pending")
+                {
+                    tokenSource = new CancellationTokenSource();
+                    response = await client.GetAsync("games/" + gameID, tokenSource.Token);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        String result = response.Content.ReadAsStringAsync().Result;
+                        gameState = (string)JsonConvert.DeserializeObject(result);
+                    }
+                    Thread.Sleep(500);
+                }
+            }
         }
 
         private void HandleHelpHowToPlay()
@@ -91,16 +149,21 @@ namespace BoggleClient
 
         private void HandleCancelRegister()
         {
-            throw new TaskCanceledException();
+            if(!registerWindowIsHidden)
+            {
+                throw new TaskCanceledException();
+            }
+            
         }
 
         private async void HandleLogin(string domain, string nickname)
         {
+            baseAddress = new Uri(domain);
             try
             {
                 
                 registerWindow.EnableControls(false);
-                using (HttpClient client = CreateClient(domain))
+                using (HttpClient client = CreateClient())
                 {
                     // Create the parameter
                     dynamic user = new ExpandoObject();
@@ -117,9 +180,9 @@ namespace BoggleClient
                         String result = response.Content.ReadAsStringAsync().Result;
                         userToken = JsonConvert.DeserializeObject(result);
 
-                        gameTimeWindow = new GameTimeForm();
                         gameTimeWindow.Show();
                         registerWindow.Hide();
+                        registerWindowIsHidden = true;
                         //view.UserRegistered = true;
                     }
                     else
@@ -128,7 +191,7 @@ namespace BoggleClient
                     }
                 }
             }
-            catch (TaskCanceledException e)
+            catch (TaskCanceledException)
             {
             }
             finally
@@ -138,11 +201,12 @@ namespace BoggleClient
 
             
         }
-        private HttpClient CreateClient(string domain)
+        private HttpClient CreateClient()
         {
             // Create a client whose base address is the GitHub server
             HttpClient client = new HttpClient();
-            client.BaseAddress = new Uri(domain);
+            //client.BaseAddress = new Uri("http://cs3500-boggle-s17.azurewebsites.net/BoggleService.svc/"); 
+            client.BaseAddress = this.baseAddress;
 
             // Tell the server that the client will accept this particular type of response data
             client.DefaultRequestHeaders.Clear();
