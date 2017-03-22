@@ -420,14 +420,14 @@
             // HelpGameRules
             // 
             this.HelpGameRules.Name = "HelpGameRules";
-            this.HelpGameRules.Size = new System.Drawing.Size(181, 26);
+            this.HelpGameRules.Size = new System.Drawing.Size(164, 26);
             this.HelpGameRules.Text = "Game Rules";
             this.HelpGameRules.Click += new System.EventHandler(this.HelpGameRules_Click);
             // 
             // HelpHowToPlay
             // 
             this.HelpHowToPlay.Name = "HelpHowToPlay";
-            this.HelpHowToPlay.Size = new System.Drawing.Size(181, 26);
+            this.HelpHowToPlay.Size = new System.Drawing.Size(164, 26);
             this.HelpHowToPlay.Text = "How to Play";
             this.HelpHowToPlay.Click += new System.EventHandler(this.HelpHowToPlay_Click);
             // 
@@ -489,7 +489,6 @@
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "PlayForm";
             this.Text = "Play";
-            this.Load += new System.EventHandler(this.PlayForm_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);

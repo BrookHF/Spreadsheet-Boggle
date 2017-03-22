@@ -34,5 +34,11 @@ namespace BoggleClient
                 CancelJoinEvent();
             }
         }
+
+        public void SearchingMessageVisible(bool state)
+        {
+            SearchingLabel.Visible = state;
+            LoadingGif.Visible = state;
+        }
     }
 }
