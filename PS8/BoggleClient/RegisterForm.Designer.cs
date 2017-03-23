@@ -36,6 +36,13 @@
             this.CancelRegisterButton = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.howToPlayToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.gameRulesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.howToConnectToServerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.howToPlayWordsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuStrip2 = new System.Windows.Forms.MenuStrip();
+            this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // DomainNameTextBox
@@ -108,6 +115,54 @@
             this.label4.TabIndex = 7;
             this.label4.Text = "and User name to enter the game";
             // 
+            // menuStrip1
+            // 
+            this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.howToPlayToolStripMenuItem});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 28);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(466, 28);
+            this.menuStrip1.TabIndex = 8;
+            this.menuStrip1.Text = "menuStrip1";
+            // 
+            // howToPlayToolStripMenuItem
+            // 
+            this.howToPlayToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.gameRulesToolStripMenuItem,
+            this.howToConnectToServerToolStripMenuItem,
+            this.howToPlayWordsToolStripMenuItem});
+            this.howToPlayToolStripMenuItem.Name = "howToPlayToolStripMenuItem";
+            this.howToPlayToolStripMenuItem.Size = new System.Drawing.Size(101, 24);
+            this.howToPlayToolStripMenuItem.Text = "How to Play";
+            // 
+            // gameRulesToolStripMenuItem
+            // 
+            this.gameRulesToolStripMenuItem.Name = "gameRulesToolStripMenuItem";
+            this.gameRulesToolStripMenuItem.Size = new System.Drawing.Size(212, 26);
+            this.gameRulesToolStripMenuItem.Text = "Game Rules";
+            // 
+            // howToConnectToServerToolStripMenuItem
+            // 
+            this.howToConnectToServerToolStripMenuItem.Name = "howToConnectToServerToolStripMenuItem";
+            this.howToConnectToServerToolStripMenuItem.Size = new System.Drawing.Size(212, 26);
+            this.howToConnectToServerToolStripMenuItem.Text = "How to Register";
+            // 
+            // howToPlayWordsToolStripMenuItem
+            // 
+            this.howToPlayWordsToolStripMenuItem.Name = "howToPlayWordsToolStripMenuItem";
+            this.howToPlayWordsToolStripMenuItem.Size = new System.Drawing.Size(212, 26);
+            this.howToPlayWordsToolStripMenuItem.Text = "How To Play Words";
+            // 
+            // menuStrip2
+            // 
+            this.menuStrip2.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.menuStrip2.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip2.Name = "menuStrip2";
+            this.menuStrip2.Size = new System.Drawing.Size(466, 28);
+            this.menuStrip2.TabIndex = 9;
+            this.menuStrip2.Text = "menuStrip2";
+            // 
             // RegisterForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
@@ -121,8 +176,13 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.UserNameTextBox);
             this.Controls.Add(this.DomainNameTextBox);
+            this.Controls.Add(this.menuStrip1);
+            this.Controls.Add(this.menuStrip2);
+            this.MainMenuStrip = this.menuStrip1;
             this.Name = "RegisterForm";
             this.Text = "RegisterForm";
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -138,5 +198,11 @@
         private System.Windows.Forms.Button CancelRegisterButton;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem howToPlayToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem gameRulesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem howToConnectToServerToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem howToPlayWordsToolStripMenuItem;
+        private System.Windows.Forms.MenuStrip menuStrip2;
     }
 }

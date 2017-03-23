@@ -42,5 +42,15 @@ namespace BoggleClient
             UserNameTextBox.ReadOnly = !state;
             CancelRegisterButton.Enabled = !state;
         }
+
+        private void HelpGameRules_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void HelpHowToPlay_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
