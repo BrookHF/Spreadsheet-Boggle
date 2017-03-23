@@ -189,10 +189,11 @@ namespace BoggleClient
                 if (response.IsSuccessStatusCode)
                 {
                     String result = response.Content.ReadAsStringAsync().Result;
+                    gameState = JsonConvert.DeserializeObject(result);
                     String player1Words = "Player 1: " + gameState.Player1.Nickname + " Score: " + gameState.Player1.Score + "\r" + " Words Played: \r";
                     String player2Words = "Player 2: " + gameState.Player2.Nickname + " Score: " + gameState.Player2.Score + "\r" + " Words Played: \r";
 
-                    gameState = JsonConvert.DeserializeObject(result);
+                    
                     foreach(dynamic d in gameState.Player1.WordsPlayed)
                     {
                         player1Words += d.Word + ": " + d.Score + "\r";
