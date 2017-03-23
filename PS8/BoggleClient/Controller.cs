@@ -23,30 +23,33 @@ namespace BoggleClient
         public bool registerWindowIsHidden { get; private set; }
         public dynamic gameID { get; private set; }
         public dynamic gameState { get; private set; }
+        public bool gameStarted { get; private set; }
 
-        private System.Timers.Timer timer;
-        private Uri baseAddress;
+        private System.Windows.Forms.Timer timer;
+        private string domain;
 
         public Controller(RegisterForm registerWindow)
         {
             this.registerWindow = registerWindow;
             this.playWindow = new PlayForm();
+            //playWindow.Show();
             this.gameTimeWindow = new GameTimeForm();
             this.model = new HttpClient();
-            this.timer = new System.Timers.Timer(1000);
+            this.timer = new System.Windows.Forms.Timer();
 
-            timer.Elapsed += async (sender, e) => await HandleUpdate();
+            timer.Tick += HandleUpdate;
 
             registerWindow.LoginEvent += HandleLogin;
             registerWindow.CancelRegisterEvent += HandleCancelRegister;
 
-            //playWindow.EnterEvent += HandleEnter;
-            //playWindow.LeaveEvent += HandleLeave;
-            //playWindow.HelpGameRulesEvent += HandleHelpGameRules;
+            playWindow.EnterEvent += HandleEnter;
+            playWindow.LeaveEvent += HandleLeave;
+            playWindow.HelpGameRulesEvent += HandleHelpGameRules;
 
             gameTimeWindow.PlayEvent += HandlePlay;
             gameTimeWindow.CancelJoinEvent += HandleCancelJoin;
         }
+
 
         private async void HandleCancelJoin()
         {
@@ -93,7 +96,7 @@ namespace BoggleClient
                 {
                     String result = response.Content.ReadAsStringAsync().Result;
                     gameID = JsonConvert.DeserializeObject(result);
-                    playWindow = new PlayForm();
+                    //playWindow.Show();
                     registerWindow.Hide();
                     registerWindowIsHidden = true;
                 }
@@ -119,32 +122,70 @@ namespace BoggleClient
             }
         }
 
-        private async Task HandleUpdate()
+        private async void HandleUpdate(object o, EventArgs e)
         {
             using (HttpClient client = CreateClient())
             {
                 tokenSource = new CancellationTokenSource();
-                HttpResponseMessage response = await client.GetAsync("games/" + gameID.GameID, tokenSource.Token);
+                HttpResponseMessage response;
+                if (!gameStarted)
+                {
+                    response = await client.GetAsync("games/" + gameID.GameID, tokenSource.Token);
+                }
+                else
+                {
+                    response = await client.GetAsync("games/" + gameID.GameID+"?Brief=yes", tokenSource.Token);
+                }
+                    
                 if (response.IsSuccessStatusCode)
                 {
                     
                     String result = response.Content.ReadAsStringAsync().Result;
                     gameState = JsonConvert.DeserializeObject(result);
-                    string temp = gameState.GameState;
-
-                    if ("active".Equals(temp))
+                    if (!gameStarted)
                     {
-                        timer.Stop();
-                        
-                        playWindow = new PlayForm();
-                        playWindow.Show();
-                        playWindow.UpdateNamesAndBoard((string)gameState.Player1.Nickname, (string)gameState.Player2.Nickname, (string)gameState.Board);
+                        string temp = gameState.GameState;
+
+                        if (temp.Equals("active"))
+                        {
+                            gameStarted = true;
+                            playWindow.Show();
+                            gameTimeWindow.SearchingMessageVisible(false);
+                            gameTimeWindow.Hide();
+                            playWindow.UpdateNamesAndBoard((string)gameState.Player1.Nickname, (string)gameState.Player2.Nickname, (string)gameState.Board);
+
+                        }
                     }
-                    
+                    else
+                    {
+                        playWindow.UpdateScoresAndTime((string)gameState.Player1.Score.ToString(), (string)gameState.Player2.Score.ToString(), (string)gameState.TimeLeft.ToString(), this.domain);
+                        string temp = gameState.GameState;
+                        if (temp.Equals("completed"))
+                        {
+                            timer.Stop();
+                            gameStarted = false;
+                            showResult();
+                        }
+                    }
                 }
             }
         }
 
+        private async void showResult()
+        {
+            using (HttpClient client = CreateClient())
+            {
+                tokenSource = new CancellationTokenSource();
+                HttpResponseMessage response;
+                response = await client.GetAsync("games/" + gameID.GameID, tokenSource.Token);
+                if (response.IsSuccessStatusCode)
+                {
+                    String result = response.Content.ReadAsStringAsync().Result;
+                    gameState = JsonConvert.DeserializeObject(result);
+                    MessageBox.Show(result);
+                }
+            }
+        }
         private void HandleHelpHowToPlay()
         {
             throw new NotImplementedException();
@@ -157,12 +198,28 @@ namespace BoggleClient
 
         private void HandleLeave()
         {
-            throw new NotImplementedException();
+            registerWindow.Show();
+            timer.Stop();
+            playWindow.Hide();
         }
 
-        private void HandleEnter(string obj)
+        private async void HandleEnter(string word)
         {
-            throw new NotImplementedException();
+            using (HttpClient client = CreateClient())
+            {
+                dynamic play = new ExpandoObject();
+                play.UserToken = userToken.UserToken;
+                play.Word = word;
+
+                // Compose and send the request.
+                tokenSource = new CancellationTokenSource();
+                StringContent content = new StringContent(JsonConvert.SerializeObject(play), Encoding.UTF8, @"application/json");
+
+                tokenSource = new CancellationTokenSource();
+                HttpResponseMessage response = await client.PutAsync("games/" + gameID.GameID, content,tokenSource.Token);
+
+            }
+
         }
 
         private async void HandleLoadPlayForm()
@@ -190,10 +247,10 @@ namespace BoggleClient
 
         private async void HandleLogin(string domain, string nickname)
         {
+            this.domain = domain;
             //baseAddress = new Uri(domain);
             try
             {
-                
                 registerWindow.EnableControls(false);
                 using (HttpClient client = CreateClient())
                 {
@@ -217,27 +274,40 @@ namespace BoggleClient
                     }
                     else
                     {
-                        MessageBox.Show("Login not successful!");
+                        MessageBox.Show("Login not successful, invalid domain name.");
                     }
                 }
             }
-            catch (TaskCanceledException)
+            catch
             {
             }
             finally
             {
                 registerWindow.EnableControls(true);
             }
-
-            
         }
         private HttpClient CreateClient()
         {
             // Create a client whose base address is the GitHub server
             HttpClient client = new HttpClient();
-            client.BaseAddress = new Uri("http://cs3500-boggle-s17.azurewebsites.net/BoggleService.svc/"); 
-            //client.BaseAddress = this.baseAddress;
-
+            try
+            {
+                if (domain.Length > 19 && domain.Substring(domain.Length - 19).Equals("/BoggleService.svc/"))
+                {
+                    client.BaseAddress = new Uri(this.domain);
+                }
+                else
+                {
+                    client.BaseAddress = new Uri(this.domain + "/BoggleService.svc/");
+                }
+            }
+            catch
+            {
+                MessageBox.Show("Invalid domain format");
+            }
+            
+            
+            
             // Tell the server that the client will accept this particular type of response data
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Add("Accept", "application/json");

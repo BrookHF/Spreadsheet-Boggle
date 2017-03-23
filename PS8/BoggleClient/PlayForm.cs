@@ -22,7 +22,7 @@ namespace BoggleClient
         public event Action LeaveEvent;
         public event Action HelpGameRulesEvent;
         public event Action HelpHowToPlayEvent;
-
+        public event Action PlayFormLoadEvent;
 
 
         private void EnterButton_Click(object sender, EventArgs e)
@@ -58,7 +58,7 @@ namespace BoggleClient
             }
         }
 
-        public void UpdateNamesAndBoard(string opponent, string your, string board)
+        public void UpdateNamesAndBoard(string your, string opponent, string board)
         {
             OpponentsNameDisplayTextBox.Text = opponent;
             YourNameDisplayTextBox.Text = your;
@@ -78,6 +78,13 @@ namespace BoggleClient
             Display4_2.Text = "" + board[13];
             Display4_3.Text = "" + board[14];
             Display4_4.Text = "" + board[15];
+        }
+        public void UpdateScoresAndTime(string yourScore, string opponentScore, string timeRemain, string domain)
+        {
+            YourScoreDisplayTextBox.Text = yourScore;
+            OpponentScoreDisplayTextBox.Text = opponentScore;
+            TimerDisplayTextBox.Text = timeRemain;
+            ServerDisplayTextBox.Text = domain;
         }
     }
 }

@@ -141,7 +141,7 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(119, 15);
             this.label1.TabIndex = 18;
-            this.label1.Text = "Opponent Score";
+            this.label1.Text = "Player 2 Score";
             // 
             // label2
             // 
@@ -157,7 +157,7 @@
             this.ServerDisplayTextBox.Location = new System.Drawing.Point(348, 66);
             this.ServerDisplayTextBox.Name = "ServerDisplayTextBox";
             this.ServerDisplayTextBox.ReadOnly = true;
-            this.ServerDisplayTextBox.Size = new System.Drawing.Size(122, 25);
+            this.ServerDisplayTextBox.Size = new System.Drawing.Size(269, 25);
             this.ServerDisplayTextBox.TabIndex = 20;
             // 
             // YourNameDisplayTextBox
@@ -171,16 +171,16 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(364, 122);
+            this.label3.Location = new System.Drawing.Point(373, 122);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(79, 15);
+            this.label3.Size = new System.Drawing.Size(71, 15);
             this.label3.TabIndex = 22;
-            this.label3.Text = "Your Name";
+            this.label3.Text = "Player 1";
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(380, 42);
+            this.label4.Location = new System.Drawing.Point(459, 48);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(55, 15);
             this.label4.TabIndex = 23;
@@ -189,7 +189,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(527, 42);
+            this.label5.Location = new System.Drawing.Point(258, 35);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(47, 15);
             this.label5.TabIndex = 25;
@@ -197,7 +197,7 @@
             // 
             // TimerDisplayTextBox
             // 
-            this.TimerDisplayTextBox.Location = new System.Drawing.Point(495, 66);
+            this.TimerDisplayTextBox.Location = new System.Drawing.Point(130, 29);
             this.TimerDisplayTextBox.Name = "TimerDisplayTextBox";
             this.TimerDisplayTextBox.ReadOnly = true;
             this.TimerDisplayTextBox.Size = new System.Drawing.Size(122, 25);
@@ -206,11 +206,11 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(364, 213);
+            this.label6.Location = new System.Drawing.Point(351, 213);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(87, 15);
+            this.label6.Size = new System.Drawing.Size(119, 15);
             this.label6.TabIndex = 27;
-            this.label6.Text = "Your Score";
+            this.label6.Text = "Player 1 Score";
             // 
             // YourScoreDisplayTextBox
             // 
@@ -434,11 +434,11 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(492, 122);
+            this.label7.Location = new System.Drawing.Point(515, 122);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(127, 15);
+            this.label7.Size = new System.Drawing.Size(71, 15);
             this.label7.TabIndex = 44;
-            this.label7.Text = "Opponent\'s Name";
+            this.label7.Text = "Player 2";
             // 
             // OpponentsNameDisplayTextBox
             // 
