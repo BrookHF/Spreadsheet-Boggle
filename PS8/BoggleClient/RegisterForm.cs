@@ -19,6 +19,9 @@ namespace BoggleClient
 
         public event Action<string, string> LoginEvent;
         public event Action CancelRegisterEvent;
+        public event Action HelpGameRulesEvent;
+        public event Action HelpHowToPlayEvent;
+        public event Action HelpHowToRegisterEvent;
         private void LoginButton_Click(object sender, EventArgs e)
         {
             if (LoginEvent != null)
@@ -45,12 +48,26 @@ namespace BoggleClient
 
         private void HelpGameRules_Click(object sender, EventArgs e)
         {
-
+            if (HelpGameRulesEvent != null)
+            {
+                HelpGameRulesEvent();
+            }
         }
 
         private void HelpHowToPlay_Click(object sender, EventArgs e)
         {
+            if(HelpHowToPlayEvent != null)
+            {
+                HelpHowToPlayEvent();
+            }
+        }
 
+        private void howToConnectToServerToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (HelpHowToRegisterEvent != null)
+            {
+                HelpHowToRegisterEvent();
+            }
         }
     }
 }

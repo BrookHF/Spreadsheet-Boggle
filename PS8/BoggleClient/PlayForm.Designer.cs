@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PlayForm));
             this.Display1_1 = new System.Windows.Forms.TextBox();
             this.Display1_2 = new System.Windows.Forms.TextBox();
             this.Display1_3 = new System.Windows.Forms.TextBox();
@@ -64,8 +65,9 @@
             // 
             // Display1_1
             // 
+            this.Display1_1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.Display1_1.Font = new System.Drawing.Font("SimSun", 24F, System.Drawing.FontStyle.Bold);
-            this.Display1_1.Location = new System.Drawing.Point(34, 66);
+            this.Display1_1.Location = new System.Drawing.Point(31, 87);
             this.Display1_1.MaximumSize = new System.Drawing.Size(50, 50);
             this.Display1_1.Multiline = true;
             this.Display1_1.Name = "Display1_1";
@@ -77,8 +79,9 @@
             // 
             // Display1_2
             // 
+            this.Display1_2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.Display1_2.Font = new System.Drawing.Font("SimSun", 24F, System.Drawing.FontStyle.Bold);
-            this.Display1_2.Location = new System.Drawing.Point(90, 66);
+            this.Display1_2.Location = new System.Drawing.Point(87, 87);
             this.Display1_2.MaximumSize = new System.Drawing.Size(50, 50);
             this.Display1_2.Multiline = true;
             this.Display1_2.Name = "Display1_2";
@@ -90,8 +93,9 @@
             // 
             // Display1_3
             // 
+            this.Display1_3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.Display1_3.Font = new System.Drawing.Font("SimSun", 24F, System.Drawing.FontStyle.Bold);
-            this.Display1_3.Location = new System.Drawing.Point(146, 66);
+            this.Display1_3.Location = new System.Drawing.Point(143, 87);
             this.Display1_3.MaximumSize = new System.Drawing.Size(50, 50);
             this.Display1_3.Multiline = true;
             this.Display1_3.Name = "Display1_3";
@@ -103,8 +107,9 @@
             // 
             // Display1_4
             // 
+            this.Display1_4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.Display1_4.Font = new System.Drawing.Font("SimSun", 24F, System.Drawing.FontStyle.Bold);
-            this.Display1_4.Location = new System.Drawing.Point(202, 66);
+            this.Display1_4.Location = new System.Drawing.Point(199, 87);
             this.Display1_4.MaximumSize = new System.Drawing.Size(50, 50);
             this.Display1_4.Multiline = true;
             this.Display1_4.Name = "Display1_4";
@@ -116,14 +121,15 @@
             // 
             // InputTextBox
             // 
-            this.InputTextBox.Location = new System.Drawing.Point(348, 367);
+            this.InputTextBox.Location = new System.Drawing.Point(34, 417);
             this.InputTextBox.Name = "InputTextBox";
             this.InputTextBox.Size = new System.Drawing.Size(130, 25);
             this.InputTextBox.TabIndex = 16;
             // 
             // OpponentScoreDisplayTextBox
             // 
-            this.OpponentScoreDisplayTextBox.Location = new System.Drawing.Point(495, 234);
+            this.OpponentScoreDisplayTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.OpponentScoreDisplayTextBox.Location = new System.Drawing.Point(464, 255);
             this.OpponentScoreDisplayTextBox.Name = "OpponentScoreDisplayTextBox";
             this.OpponentScoreDisplayTextBox.ReadOnly = true;
             this.OpponentScoreDisplayTextBox.Size = new System.Drawing.Size(122, 25);
@@ -132,7 +138,8 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(498, 213);
+            this.label1.BackColor = System.Drawing.Color.Transparent;
+            this.label1.Location = new System.Drawing.Point(467, 234);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(119, 15);
             this.label1.TabIndex = 18;
@@ -141,7 +148,9 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(388, 349);
+            this.label2.BackColor = System.Drawing.Color.Transparent;
+            this.label2.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.label2.Location = new System.Drawing.Point(74, 399);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(47, 15);
             this.label2.TabIndex = 19;
@@ -149,7 +158,8 @@
             // 
             // ServerDisplayTextBox
             // 
-            this.ServerDisplayTextBox.Location = new System.Drawing.Point(348, 66);
+            this.ServerDisplayTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.ServerDisplayTextBox.Location = new System.Drawing.Point(317, 87);
             this.ServerDisplayTextBox.Name = "ServerDisplayTextBox";
             this.ServerDisplayTextBox.ReadOnly = true;
             this.ServerDisplayTextBox.Size = new System.Drawing.Size(269, 25);
@@ -157,7 +167,8 @@
             // 
             // YourNameDisplayTextBox
             // 
-            this.YourNameDisplayTextBox.Location = new System.Drawing.Point(348, 147);
+            this.YourNameDisplayTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.YourNameDisplayTextBox.Location = new System.Drawing.Point(317, 168);
             this.YourNameDisplayTextBox.Name = "YourNameDisplayTextBox";
             this.YourNameDisplayTextBox.ReadOnly = true;
             this.YourNameDisplayTextBox.Size = new System.Drawing.Size(122, 25);
@@ -166,7 +177,8 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(373, 122);
+            this.label3.BackColor = System.Drawing.Color.Transparent;
+            this.label3.Location = new System.Drawing.Point(342, 143);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(71, 15);
             this.label3.TabIndex = 22;
@@ -175,7 +187,8 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(459, 48);
+            this.label4.BackColor = System.Drawing.Color.Transparent;
+            this.label4.Location = new System.Drawing.Point(428, 69);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(55, 15);
             this.label4.TabIndex = 23;
@@ -184,7 +197,8 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(258, 35);
+            this.label5.BackColor = System.Drawing.Color.Transparent;
+            this.label5.Location = new System.Drawing.Point(194, 32);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(47, 15);
             this.label5.TabIndex = 25;
@@ -192,16 +206,18 @@
             // 
             // TimerDisplayTextBox
             // 
+            this.TimerDisplayTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.TimerDisplayTextBox.Location = new System.Drawing.Point(130, 29);
             this.TimerDisplayTextBox.Name = "TimerDisplayTextBox";
             this.TimerDisplayTextBox.ReadOnly = true;
-            this.TimerDisplayTextBox.Size = new System.Drawing.Size(122, 25);
+            this.TimerDisplayTextBox.Size = new System.Drawing.Size(49, 25);
             this.TimerDisplayTextBox.TabIndex = 24;
             // 
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(351, 213);
+            this.label6.BackColor = System.Drawing.Color.Transparent;
+            this.label6.Location = new System.Drawing.Point(320, 234);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(119, 15);
             this.label6.TabIndex = 27;
@@ -209,7 +225,8 @@
             // 
             // YourScoreDisplayTextBox
             // 
-            this.YourScoreDisplayTextBox.Location = new System.Drawing.Point(348, 234);
+            this.YourScoreDisplayTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.YourScoreDisplayTextBox.Location = new System.Drawing.Point(317, 255);
             this.YourScoreDisplayTextBox.Name = "YourScoreDisplayTextBox";
             this.YourScoreDisplayTextBox.ReadOnly = true;
             this.YourScoreDisplayTextBox.Size = new System.Drawing.Size(122, 25);
@@ -217,8 +234,9 @@
             // 
             // Display2_4
             // 
+            this.Display2_4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.Display2_4.Font = new System.Drawing.Font("SimSun", 24F, System.Drawing.FontStyle.Bold);
-            this.Display2_4.Location = new System.Drawing.Point(202, 122);
+            this.Display2_4.Location = new System.Drawing.Point(199, 143);
             this.Display2_4.MaximumSize = new System.Drawing.Size(50, 50);
             this.Display2_4.Multiline = true;
             this.Display2_4.Name = "Display2_4";
@@ -230,8 +248,9 @@
             // 
             // Display2_3
             // 
+            this.Display2_3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.Display2_3.Font = new System.Drawing.Font("SimSun", 24F, System.Drawing.FontStyle.Bold);
-            this.Display2_3.Location = new System.Drawing.Point(146, 122);
+            this.Display2_3.Location = new System.Drawing.Point(143, 143);
             this.Display2_3.MaximumSize = new System.Drawing.Size(50, 50);
             this.Display2_3.Multiline = true;
             this.Display2_3.Name = "Display2_3";
@@ -243,8 +262,9 @@
             // 
             // Display2_2
             // 
+            this.Display2_2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.Display2_2.Font = new System.Drawing.Font("SimSun", 24F, System.Drawing.FontStyle.Bold);
-            this.Display2_2.Location = new System.Drawing.Point(90, 122);
+            this.Display2_2.Location = new System.Drawing.Point(87, 143);
             this.Display2_2.MaximumSize = new System.Drawing.Size(50, 50);
             this.Display2_2.Multiline = true;
             this.Display2_2.Name = "Display2_2";
@@ -256,8 +276,9 @@
             // 
             // Display2_1
             // 
+            this.Display2_1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.Display2_1.Font = new System.Drawing.Font("SimSun", 24F, System.Drawing.FontStyle.Bold);
-            this.Display2_1.Location = new System.Drawing.Point(34, 122);
+            this.Display2_1.Location = new System.Drawing.Point(31, 143);
             this.Display2_1.MaximumSize = new System.Drawing.Size(50, 50);
             this.Display2_1.Multiline = true;
             this.Display2_1.Name = "Display2_1";
@@ -269,8 +290,9 @@
             // 
             // Display3_4
             // 
+            this.Display3_4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.Display3_4.Font = new System.Drawing.Font("SimSun", 24F, System.Drawing.FontStyle.Bold);
-            this.Display3_4.Location = new System.Drawing.Point(202, 178);
+            this.Display3_4.Location = new System.Drawing.Point(199, 199);
             this.Display3_4.MaximumSize = new System.Drawing.Size(50, 50);
             this.Display3_4.Multiline = true;
             this.Display3_4.Name = "Display3_4";
@@ -282,8 +304,9 @@
             // 
             // Display3_3
             // 
+            this.Display3_3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.Display3_3.Font = new System.Drawing.Font("SimSun", 24F, System.Drawing.FontStyle.Bold);
-            this.Display3_3.Location = new System.Drawing.Point(146, 178);
+            this.Display3_3.Location = new System.Drawing.Point(143, 199);
             this.Display3_3.MaximumSize = new System.Drawing.Size(50, 50);
             this.Display3_3.Multiline = true;
             this.Display3_3.Name = "Display3_3";
@@ -295,8 +318,9 @@
             // 
             // Display3_2
             // 
+            this.Display3_2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.Display3_2.Font = new System.Drawing.Font("SimSun", 24F, System.Drawing.FontStyle.Bold);
-            this.Display3_2.Location = new System.Drawing.Point(90, 178);
+            this.Display3_2.Location = new System.Drawing.Point(87, 199);
             this.Display3_2.MaximumSize = new System.Drawing.Size(50, 50);
             this.Display3_2.Multiline = true;
             this.Display3_2.Name = "Display3_2";
@@ -308,8 +332,9 @@
             // 
             // Display3_1
             // 
+            this.Display3_1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.Display3_1.Font = new System.Drawing.Font("SimSun", 24F, System.Drawing.FontStyle.Bold);
-            this.Display3_1.Location = new System.Drawing.Point(34, 178);
+            this.Display3_1.Location = new System.Drawing.Point(31, 199);
             this.Display3_1.MaximumSize = new System.Drawing.Size(50, 50);
             this.Display3_1.Multiline = true;
             this.Display3_1.Name = "Display3_1";
@@ -321,8 +346,9 @@
             // 
             // Display4_4
             // 
+            this.Display4_4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.Display4_4.Font = new System.Drawing.Font("SimSun", 24F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.Display4_4.Location = new System.Drawing.Point(202, 234);
+            this.Display4_4.Location = new System.Drawing.Point(199, 255);
             this.Display4_4.Margin = new System.Windows.Forms.Padding(10, 3, 3, 3);
             this.Display4_4.MaximumSize = new System.Drawing.Size(50, 50);
             this.Display4_4.Multiline = true;
@@ -335,8 +361,9 @@
             // 
             // Display4_3
             // 
+            this.Display4_3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.Display4_3.Font = new System.Drawing.Font("SimSun", 24F, System.Drawing.FontStyle.Bold);
-            this.Display4_3.Location = new System.Drawing.Point(146, 234);
+            this.Display4_3.Location = new System.Drawing.Point(143, 255);
             this.Display4_3.MaximumSize = new System.Drawing.Size(50, 50);
             this.Display4_3.Multiline = true;
             this.Display4_3.Name = "Display4_3";
@@ -348,8 +375,9 @@
             // 
             // Display4_2
             // 
+            this.Display4_2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.Display4_2.Font = new System.Drawing.Font("SimSun", 24F, System.Drawing.FontStyle.Bold);
-            this.Display4_2.Location = new System.Drawing.Point(90, 234);
+            this.Display4_2.Location = new System.Drawing.Point(87, 255);
             this.Display4_2.MaximumSize = new System.Drawing.Size(50, 50);
             this.Display4_2.Multiline = true;
             this.Display4_2.Name = "Display4_2";
@@ -361,8 +389,9 @@
             // 
             // Display4_1
             // 
+            this.Display4_1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.Display4_1.Font = new System.Drawing.Font("SimSun", 24F, System.Drawing.FontStyle.Bold);
-            this.Display4_1.Location = new System.Drawing.Point(34, 234);
+            this.Display4_1.Location = new System.Drawing.Point(31, 255);
             this.Display4_1.MaximumSize = new System.Drawing.Size(50, 50);
             this.Display4_1.Multiline = true;
             this.Display4_1.Name = "Display4_1";
@@ -374,7 +403,7 @@
             // 
             // LeaveButton
             // 
-            this.LeaveButton.Location = new System.Drawing.Point(9, 31);
+            this.LeaveButton.Location = new System.Drawing.Point(31, 31);
             this.LeaveButton.Name = "LeaveButton";
             this.LeaveButton.Size = new System.Drawing.Size(75, 23);
             this.LeaveButton.TabIndex = 40;
@@ -384,7 +413,7 @@
             // 
             // EnterButton
             // 
-            this.EnterButton.Location = new System.Drawing.Point(511, 369);
+            this.EnterButton.Location = new System.Drawing.Point(197, 419);
             this.EnterButton.Name = "EnterButton";
             this.EnterButton.Size = new System.Drawing.Size(75, 23);
             this.EnterButton.TabIndex = 41;
@@ -395,7 +424,8 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(515, 122);
+            this.label7.BackColor = System.Drawing.Color.Transparent;
+            this.label7.Location = new System.Drawing.Point(484, 143);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(71, 15);
             this.label7.TabIndex = 44;
@@ -403,7 +433,8 @@
             // 
             // OpponentsNameDisplayTextBox
             // 
-            this.OpponentsNameDisplayTextBox.Location = new System.Drawing.Point(495, 147);
+            this.OpponentsNameDisplayTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.OpponentsNameDisplayTextBox.Location = new System.Drawing.Point(464, 168);
             this.OpponentsNameDisplayTextBox.Name = "OpponentsNameDisplayTextBox";
             this.OpponentsNameDisplayTextBox.ReadOnly = true;
             this.OpponentsNameDisplayTextBox.Size = new System.Drawing.Size(122, 25);
@@ -413,7 +444,8 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(660, 515);
+            this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
+            this.ClientSize = new System.Drawing.Size(625, 515);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.OpponentsNameDisplayTextBox);
             this.Controls.Add(this.EnterButton);
@@ -448,6 +480,7 @@
             this.Controls.Add(this.Display1_1);
             this.Name = "PlayForm";
             this.Text = "Play";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.PlayForm_FormClosing);
             this.ResumeLayout(false);
             this.PerformLayout();
 

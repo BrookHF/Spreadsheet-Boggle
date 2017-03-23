@@ -14,6 +14,7 @@ namespace BoggleClient
     {
         public event Action<string> PlayEvent;
         public event Action CancelJoinEvent;
+        public event Action GameTimeFormClosingEvent;
         public GameTimeForm()
         {
             InitializeComponent();
@@ -39,6 +40,14 @@ namespace BoggleClient
         {
             SearchingLabel.Visible = state;
             LoadingGif.Visible = state;
+        }
+
+        private void GameTimeForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (GameTimeFormClosingEvent != null)
+            {
+                GameTimeFormClosingEvent();
+            }
         }
     }
 }

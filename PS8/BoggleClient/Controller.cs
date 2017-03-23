@@ -41,15 +41,23 @@ namespace BoggleClient
 
             registerWindow.LoginEvent += HandleLogin;
             registerWindow.CancelRegisterEvent += HandleCancelRegister;
+            registerWindow.HelpGameRulesEvent += HandleHelpGameRules;
+            registerWindow.HelpHowToPlayEvent += HandleHelpHowToPlay;
+            registerWindow.HelpHowToRegisterEvent += HandleHelpHowToRegister;
 
             playWindow.EnterEvent += HandleEnter;
             playWindow.LeaveEvent += HandleLeave;
-            playWindow.HelpGameRulesEvent += HandleHelpGameRules;
+            playWindow.PlayFormClosingEvent += HandleFormClosing;
 
             gameTimeWindow.PlayEvent += HandlePlay;
             gameTimeWindow.CancelJoinEvent += HandleCancelJoin;
+            gameTimeWindow.GameTimeFormClosingEvent += HandleFormClosing;
         }
 
+        private void HandleFormClosing()
+        {
+            registerWindow.Close();
+        }
 
         private async void HandleCancelJoin()
         {
@@ -181,8 +189,8 @@ namespace BoggleClient
                 if (response.IsSuccessStatusCode)
                 {
                     String result = response.Content.ReadAsStringAsync().Result;
-                    String player1Words = "Player 1 Words Played: \r";
-                    String player2Words = "Player 2 Words Played: \r";
+                    String player1Words = "Player 1: " + gameState.Player1.Nickname + " Score: " + gameState.Player1.Score + "\r" + " Words Played: \r";
+                    String player2Words = "Player 2: " + gameState.Player2.Nickname + " Score: " + gameState.Player2.Score + "\r" + " Words Played: \r";
 
                     gameState = JsonConvert.DeserializeObject(result);
                     foreach(dynamic d in gameState.Player1.WordsPlayed)
@@ -199,12 +207,17 @@ namespace BoggleClient
         }
         private void HandleHelpHowToPlay()
         {
-            throw new NotImplementedException();
+            MessageBox.Show("Once you've found a word, type it into the text box below the gameboard and timer, then press enter. ");
         }
 
         private void HandleHelpGameRules()
         {
-            throw new NotImplementedException();
+            MessageBox.Show("Words can only be formed from adjoining letters. Letters must join in the proper sequence to spell a word. They may join horizontally, vertically, or diagonally, to the left, right, or up and down. No letter cube, however, may be used more than once within a single word. ");
+        }
+
+        private void HandleHelpHowToRegister()
+        {
+            MessageBox.Show("Enter a desired user name as well as the domain of the server you wish to connect to. Domain url can be formatted as either ending in /BoggleService.svc/ or domain name (For example: http://cs3500-boggle-s17.azurewebsites.net)");
         }
 
         private void HandleLeave()
@@ -285,7 +298,7 @@ namespace BoggleClient
                     }
                     else
                     {
-                        MessageBox.Show("Login not successful, invalid domain name.");
+                        MessageBox.Show("Login not successful.");
                     }
                 }
             }

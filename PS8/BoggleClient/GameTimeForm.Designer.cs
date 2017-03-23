@@ -89,11 +89,12 @@
             this.LoadingGif.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.LoadingGif.BackColor = System.Drawing.Color.Transparent;
             this.LoadingGif.Image = ((System.Drawing.Image)(resources.GetObject("LoadingGif.Image")));
-            this.LoadingGif.InitialImage = ((System.Drawing.Image)(resources.GetObject("LoadingGif.InitialImage")));
-            this.LoadingGif.Location = new System.Drawing.Point(318, 276);
+            this.LoadingGif.InitialImage = null;
+            this.LoadingGif.Location = new System.Drawing.Point(348, 280);
             this.LoadingGif.Name = "LoadingGif";
-            this.LoadingGif.Size = new System.Drawing.Size(69, 69);
+            this.LoadingGif.Size = new System.Drawing.Size(49, 49);
             this.LoadingGif.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.LoadingGif.TabIndex = 5;
             this.LoadingGif.TabStop = false;
@@ -123,6 +124,7 @@
             this.Controls.Add(this.label1);
             this.Name = "GameTimeForm";
             this.Text = "GameTime";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.GameTimeForm_FormClosing);
             ((System.ComponentModel.ISupportInitialize)(this.LoadingGif)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
