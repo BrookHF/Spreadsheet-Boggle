@@ -14,6 +14,8 @@ namespace Boggle
         [WebGet(UriTemplate = "/api")]
         Stream API();
 
+        [WebInvoke(Method = "POST", UriTemplate = "/users")]
+        string CreateUser(User user);
         /// <summary>
         /// Returns the nth word from dictionary.txt.  If there is
         /// no nth word, responds with code 403. This is a demo;

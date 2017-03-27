@@ -138,6 +138,7 @@
     <Compile Include="BoggleService.svc.cs">
       <DependentUpon>BoggleService.svc</DependentUpon>
     </Compile>
+    <Compile Include="DataModels.cs" />
     <Compile Include="IBoggleService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
