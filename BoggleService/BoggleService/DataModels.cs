@@ -76,5 +76,12 @@ namespace Boggle
         {
             WordsPlayed = new HashSet<String>();
         }
+        public List<WordPlayed> WordsList { get; set; }
+    }
+
+    public class WordPlayed
+    {
+        public string Word { get; set; }
+        public int Score { get; set; }
     }
 }

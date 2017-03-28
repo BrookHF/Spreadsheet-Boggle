@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Net;
 using System.ServiceModel.Web;
@@ -144,14 +145,18 @@ namespace Boggle
                     return null;
                 }
                 SetStatus(OK);
+                WordPlayed wordPlayed = new WordPlayed();
                 ScoreChange score = new ScoreChange();
-                if(status.Board.CanBeFormed(playWord.Word) && dictionary.Contains(playWord.Word))
+                wordPlayed.Word = playWord.Word;
+                bool isPlayer1 = status.Player1.UserToken.Equals(playWord.UserToken);
+                if (status.Board.CanBeFormed(playWord.Word) && dictionary.Contains(playWord.Word))
                 {
-
-                    if(status.Player1.UserToken.Equals(playWord.UserToken))
+                    if(isPlayer1)
                     {
                         if (!status.Player1.WordsPlayed.Add(playWord.Word))
                         {
+                            wordPlayed.Score = 0;
+                            status.Player1.WordsList.Add(wordPlayed);
                             score.Score = 0;
                             return score;
                         }
@@ -160,6 +165,8 @@ namespace Boggle
                     {
                         if (!status.Player2.WordsPlayed.Add(playWord.Word))
                         {
+                            wordPlayed.Score = 0;
+                            status.Player2.WordsList.Add(wordPlayed);
                             score.Score = 0;
                             return score;
                         }
@@ -184,21 +191,95 @@ namespace Boggle
                             break;
 
                     }
-
+                    wordPlayed.Score = score.Score;
+                    if(isPlayer1)
+                    {
+                        status.Player1.WordsList.Add(wordPlayed);
+                    }
+                    else
+                    {
+                        status.Player2.WordsList.Add(wordPlayed);
+                    }                 
                     return score;
                 }
                 else
                 {
+                    
                     score.Score = -1;
+                    wordPlayed.Score = score.Score;
+                    if (isPlayer1)
+                    {
+                        status.Player1.WordsList.Add(wordPlayed);
+                    }
+                    else
+                    {
+                        status.Player2.WordsList.Add(wordPlayed);
+                    }
                     return score;
                 }
-            }
-            
+            }     
         }
 
-        public object GetGameStatus(bool yes, int GameID)
+        public object GetGameStatus(bool brief, int GameID)
         {
-            throw new NotImplementedException();
+            //if gameID is invalid, respond with 403 forbidden
+            GameStatus status;
+            if (GameID < 100 || GameID > GameIDCount || !gameStatus.TryGetValue(GameID, out status))
+            {
+                SetStatus(Forbidden);
+                return null;
+            }
+            dynamic statusObject = new ExpandoObject();
+            if (status.GameState == "pending") //Response if pending
+            {
+                statusObject.GameState = status.GameState;
+                return statusObject;
+            }
+            else if (status.GameState == "active") //Response if active
+            {
+                if(brief == true) //Active + brief = yes
+                {
+                    statusObject.GameState = status.GameState;
+                    statusObject.TimeLeft = status.TimeLeft;
+                    statusObject.Player1.Score = status.Player1.Score;
+                    statusObject.Player2.Score = status.Player2.Score;
+                }
+                else //Active without brief = yes
+                {
+                    statusObject.GameState = status.GameState;
+                    statusObject.Board = status.Board.ToString();
+                    statusObject.TimeLimit = status.TimeLimit;
+                    statusObject.TimeLeft = status.TimeLeft;
+                    statusObject.Player1.Nickname = status.Player1.Nickname;
+                    statusObject.Player1.Score = status.Player1.Score;
+                    statusObject.Player2.Nickname = status.Player2.Nickname;
+                    statusObject.Player2.Score = status.Player2.Score;
+                }
+            }
+            else //Completed
+            {
+                if (brief == true) //Completed + brief = yes
+                {
+                    statusObject.GameState = status.GameState;
+                    statusObject.TimeLeft = status.TimeLeft;
+                    statusObject.Player1.Score = status.Player1.Score;
+                    statusObject.Player2.Score = status.Player2.Score;
+                }
+                else //Completed and no brief=yes
+                {
+                    statusObject.GameState = status.GameState;
+                    statusObject.Board = status.Board.ToString();
+                    statusObject.TimeLimit = status.TimeLimit;
+                    statusObject.TimeLeft = status.TimeLeft;
+                    statusObject.Player1.Nickname = status.Player1.Nickname;
+                    statusObject.Player1.Score = status.Player1.Score;
+                    statusObject.Player1.WordsPlayed = status.Player1.WordsList;
+                    statusObject.Player2.Nickname = status.Player2.Nickname;
+                    statusObject.Player2.Score = status.Player2.Score;
+                    statusObject.Player2.WordsPlayed = status.Player2.WordsList;
+                }
+            }
+            return statusObject;
         }
 
         private string getNickname(string userToken)
