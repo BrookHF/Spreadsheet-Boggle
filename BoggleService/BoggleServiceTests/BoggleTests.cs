@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using static System.Net.HttpStatusCode;
 using System.Diagnostics;
 using Newtonsoft.Json;
+using System.Dynamic;
 
 namespace Boggle
 {
@@ -71,7 +72,7 @@ namespace Boggle
         /// for details.
         /// </summary>
         [TestMethod]
-        public void TestMethod1()
+        public void TestMethodDemo()
         {
             Response r = client.DoGetAsync("word?index={0}", "-5").Result;
             Assert.AreEqual(Forbidden, r.Status);
@@ -81,6 +82,17 @@ namespace Boggle
 
             string word = (string) r.Data;
             Assert.AreEqual("AAL", word);
+        }
+
+        [TestMethod]
+        public void TestMethod1()
+        {
+            dynamic user = new ExpandoObject();
+            user.Nickname = "mj";
+            Response r = client.DoPostAsync("users", user).Result;
+            Assert.AreEqual(Created, r.Status);
+
+            string word = (string)r.Data;
         }
     }
 }

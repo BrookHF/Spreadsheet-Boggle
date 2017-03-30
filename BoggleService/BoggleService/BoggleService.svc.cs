@@ -4,6 +4,8 @@ using System.Dynamic;
 using System.IO;
 using System.Net;
 using System.ServiceModel.Web;
+using System.Timers;
+using System.Windows;
 using static System.Net.HttpStatusCode;
 
 namespace Boggle
@@ -17,6 +19,7 @@ namespace Boggle
         private static int GameIDCount = 100;
         private readonly static HashSet<String> dictionary = new HashSet<string>();
         private static GameStatus CurrGame = null;
+        
         /// <summary>
         /// The most recent call to SetStatus determines the response code used when
         /// an http response is sent.
@@ -38,48 +41,63 @@ namespace Boggle
             return File.OpenRead(AppDomain.CurrentDomain.BaseDirectory + "index.html");
         }
 
-
+        /// <summary>
+        /// Handles a call to the server to create a new user based on the nickname passed in.
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
         public Token CreateUser(User user)
         {
             lock (sync)
             {
+                //For the first launch of the server, populate the dictionary
                 if (dictionary.Count == 0)
                 {
                     FillDictionary();
                 }
                 user.Nickname = user.Nickname.Trim();
+
+                //Checks to make sure a non-empty nickname was provided
                 if (user.Nickname == null || user.Nickname.Equals(""))
                 {
                     SetStatus(Forbidden);
                     return null;
                 }
+
                 Token token = new Token();
-                token.UserToken = Guid.NewGuid().ToString();
+                token.UserToken = Guid.NewGuid().ToString(); //Generates new token for user
                 while (users.ContainsKey(token.UserToken))
                 {
                     token.UserToken = Guid.NewGuid().ToString();
                 }
-                users.Add(token.UserToken, user);
+                users.Add(token.UserToken, user); //Stores nickname + token in dictionary.
                 SetStatus(Created);
                 return token;  
             }
         }
 
+        /// <summary>
+        /// Handles call to server to join a game.
+        /// </summary>
+        /// <param name="game"></param>
+        /// <returns></returns>
         public ID JoinGame(Game game)
         {
             lock (sync)
             {
-                
+                //checks to make sure user is registered, and game time is withing 5-120 seconds.
                 if (!users.ContainsKey(game.UserToken) || game.TimeLimit<5 || game.TimeLimit>120)
                 {
                     SetStatus(Forbidden);
                     return null;
                 }
+                //makes sure player doesnt play against themself
                 if (CurrGame.Player1.Nickname.Equals(getNickname(game.UserToken)))
                 {
                     SetStatus(Conflict);
                     return null;
                 }
+                //if they are the first player to join the game
                 if(CurrGame == null)
                 {
                     CurrGame = new GameStatus();
@@ -91,7 +109,7 @@ namespace Boggle
                     SetStatus(Accepted);
                     return new ID(GameIDCount);
                 }
-                else
+                else //if they are the 2nd player to join game
                 {
                     User user = new User();
                     users.TryGetValue(game.UserToken, out user);
@@ -100,6 +118,7 @@ namespace Boggle
                     CurrGame.Player2.UserToken = game.UserToken;
                     CurrGame.TimeLimit = (CurrGame.TimeLimit + game.TimeLimit) / 2;
                     CurrGame.TimeLeft = CurrGame.TimeLimit;
+                    CurrGame.startTime = DateTime.Now;
                     gameStatus.Add(GameIDCount, CurrGame);
                     CurrGame = null;
                     SetStatus(Created);
@@ -107,7 +126,10 @@ namespace Boggle
                 }
             }
         }
-
+        /// <summary>
+        /// Handles a request to cancel searching for a game.
+        /// </summary>
+        /// <param name="token"></param>
         public void CancelJoin(Token token)
         {
             lock (sync)
@@ -117,12 +139,18 @@ namespace Boggle
                     SetStatus(Forbidden);
                     return;
                 }
-
+                //if there is a game with 1 player in it, and the player in it matches the player's token passed in, then sets the game to null.
                 CurrGame = null;
                 SetStatus(OK);
             }
         }
 
+        /// <summary>
+        /// PlayWord 
+        /// </summary>
+        /// <param name="playWord"></param>
+        /// <param name="GameID"></param>
+        /// <returns></returns>
         public ScoreChange PlayWord(PlayWord playWord, int GameID)
         {
             lock (sync)
@@ -237,6 +265,32 @@ namespace Boggle
             }
             else if (status.GameState == "active") //Response if active
             {
+                status.TimeLeft = (int)DateTime.Now.Subtract(status.startTime).TotalSeconds;
+                if (status.TimeLeft <= 0)
+                {
+                    status.GameState = "completed";
+                    if (brief == true) //Completed + brief = yes
+                    {
+                        statusObject.GameState = status.GameState;
+                        statusObject.TimeLeft = status.TimeLeft;
+                        statusObject.Player1.Score = status.Player1.Score;
+                        statusObject.Player2.Score = status.Player2.Score;
+                    }
+                    else //Completed and no brief=yes
+                    {
+                        statusObject.GameState = status.GameState;
+                        statusObject.Board = status.Board.ToString();
+                        statusObject.TimeLimit = status.TimeLimit;
+                        statusObject.TimeLeft = status.TimeLeft;
+                        statusObject.Player1.Nickname = status.Player1.Nickname;
+                        statusObject.Player1.Score = status.Player1.Score;
+                        statusObject.Player1.WordsPlayed = status.Player1.WordsList;
+                        statusObject.Player2.Nickname = status.Player2.Nickname;
+                        statusObject.Player2.Score = status.Player2.Score;
+                        statusObject.Player2.WordsPlayed = status.Player2.WordsList;
+                    }
+                    return statusObject;
+                }
                 if(brief == true) //Active + brief = yes
                 {
                     statusObject.GameState = status.GameState;
@@ -282,6 +336,11 @@ namespace Boggle
             return statusObject;
         }
 
+        /// <summary>
+        /// Helper method to obtain a nickname from a user token
+        /// </summary>
+        /// <param name="userToken"></param>
+        /// <returns></returns>
         private string getNickname(string userToken)
         {
             User name;

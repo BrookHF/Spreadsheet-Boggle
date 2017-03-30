@@ -126,6 +126,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_Data\BoggleDB.mdf" />
+    <Content Include="App_Data\BoggleDB_log.ldf">
+      <DependentUpon>BoggleDB.mdf</DependentUpon>
+    </Content>
     <Content Include="index.html" />
     <Content Include="dictionary.txt" />
     <Content Include="BoggleService.svc" />
