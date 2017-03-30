@@ -14,7 +14,7 @@ namespace Boggle
     {
 
         private readonly static Dictionary<string, User> users = new Dictionary<string, User>();
-        private readonly static Dictionary<int, GameStatus> gameStatus = new Dictionary<int, GameStatus>();
+        private readonly static Dictionary<string, GameStatus> gameStatus = new Dictionary<string, GameStatus>();
         private static readonly object sync = new object();
         private static int GameIDCount = 100;
         private readonly static HashSet<String> dictionary = new HashSet<string>();
@@ -39,6 +39,39 @@ namespace Boggle
             SetStatus(OK);
             WebOperationContext.Current.OutgoingResponse.ContentType = "text/html";
             return File.OpenRead(AppDomain.CurrentDomain.BaseDirectory + "index.html");
+        }
+
+        /// <summary>
+        /// Demo.  You can delete this.
+        /// </summary>
+        public string WordAtIndex(int n)
+        {
+            if (n < 0)
+            {
+                SetStatus(Forbidden);
+                return null;
+            }
+
+            string line;
+            using (StreamReader file = new System.IO.StreamReader(AppDomain.CurrentDomain.BaseDirectory + "dictionary.txt"))
+            {
+                while ((line = file.ReadLine()) != null)
+                {
+                    if (n == 0) break;
+                    n--;
+                }
+            }
+
+            if (n == 0)
+            {
+                SetStatus(OK);
+                return line;
+            }
+            else
+            {
+                SetStatus(Forbidden);
+                return null;
+            }
         }
 
         /// <summary>
@@ -107,7 +140,9 @@ namespace Boggle
                     CurrGame.Player1.UserToken = game.UserToken;
                     CurrGame.TimeLimit = game.TimeLimit;
                     SetStatus(Accepted);
-                    return new ID(GameIDCount);
+                    ID returnID = new ID();
+                    returnID.GameID = GameIDCount.ToString();
+                    return returnID;
                 }
                 else //if they are the 2nd player to join game
                 {
@@ -119,10 +154,13 @@ namespace Boggle
                     CurrGame.TimeLimit = (CurrGame.TimeLimit + game.TimeLimit) / 2;
                     CurrGame.TimeLeft = CurrGame.TimeLimit;
                     CurrGame.startTime = DateTime.Now;
-                    gameStatus.Add(GameIDCount, CurrGame);
+                    gameStatus.Add(GameIDCount.ToString(), CurrGame);
                     CurrGame = null;
                     SetStatus(Created);
-                    return new ID(GameIDCount++);
+                    ID returnID = new ID();
+                    returnID.GameID = GameIDCount.ToString();
+                    GameIDCount++;
+                    return returnID;
                 }
             }
         }
@@ -151,7 +189,7 @@ namespace Boggle
         /// <param name="playWord"></param>
         /// <param name="GameID"></param>
         /// <returns></returns>
-        public ScoreChange PlayWord(PlayWord playWord, int GameID)
+        public ScoreChange PlayWord(PlayWord playWord, string GameID)
         {
             lock (sync)
             {
@@ -248,11 +286,11 @@ namespace Boggle
             }     
         }
 
-        public object GetGameStatus(bool brief, int GameID)
+        public object GetGameStatus(string brief, string GameID)
         {
             //if gameID is invalid, respond with 403 forbidden
             GameStatus status;
-            if (GameID < 100 || GameID > GameIDCount || !gameStatus.TryGetValue(GameID, out status))
+            if (!gameStatus.ContainsKey(GameID) || !gameStatus.TryGetValue(GameID, out status))
             {
                 SetStatus(Forbidden);
                 return null;
@@ -269,7 +307,7 @@ namespace Boggle
                 if (status.TimeLeft <= 0)
                 {
                     status.GameState = "completed";
-                    if (brief == true) //Completed + brief = yes
+                    if (brief == "yes") //Completed + brief = yes
                     {
                         statusObject.GameState = status.GameState;
                         statusObject.TimeLeft = status.TimeLeft;
@@ -291,7 +329,7 @@ namespace Boggle
                     }
                     return statusObject;
                 }
-                if(brief == true) //Active + brief = yes
+                if (brief == "yes") //Active + brief = yes
                 {
                     statusObject.GameState = status.GameState;
                     statusObject.TimeLeft = status.TimeLeft;
@@ -312,7 +350,7 @@ namespace Boggle
             }
             else //Completed
             {
-                if (brief == true) //Completed + brief = yes
+                if (brief == "yes") //Completed + brief = yes
                 {
                     statusObject.GameState = status.GameState;
                     statusObject.TimeLeft = status.TimeLeft;
@@ -334,6 +372,7 @@ namespace Boggle
                 }
             }
             return statusObject;
+
         }
 
         /// <summary>

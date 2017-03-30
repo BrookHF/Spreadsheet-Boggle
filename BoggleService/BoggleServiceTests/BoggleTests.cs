@@ -80,10 +80,13 @@ namespace Boggle
             r = client.DoGetAsync("word?index={0}", "5").Result;
             Assert.AreEqual(OK, r.Status);
 
-            string word = (string) r.Data;
+            string word = (string)r.Data;
             Assert.AreEqual("AAL", word);
         }
 
+        /// <summary>
+        /// Tests to make sure a valid nickname returns a Created Response on Create User.
+        /// </summary>
         [TestMethod]
         public void TestMethod1()
         {
@@ -93,6 +96,82 @@ namespace Boggle
             Assert.AreEqual(Created, r.Status);
 
             string word = (string)r.Data;
+        }
+
+        /// <summary>
+        /// Tests to make sure a null nickname and an empty nickname return 403 forbidden on Create User.
+        /// </summary>
+        [TestMethod]
+        public void TestMethod2()
+        {
+            dynamic user = new ExpandoObject();
+            user.Nickname = "";
+            Response r = client.DoPostAsync("users", user).Result;
+            Assert.AreEqual(Created, r.Status);
+
+            string word = (string)r.Data;
+        }
+
+        /// <summary>
+        /// Tests to make sure a valid nickname returns a UserToken on Create User.
+        /// </summary>
+        [TestMethod]
+        public void TestMethod3()
+        {
+            dynamic user = new ExpandoObject();
+            user.Nickname = "mj";
+            Response r = client.DoPostAsync("users", user).Result;
+
+            string token = (string)r.Data;
+            Assert.IsTrue(token.Length > 0);
+        }
+
+        /// <summary>
+        /// Tests to make sure if UserToken is invalid, TimeLimit less than 5, or TimeLimit greater than 120, 
+        /// responds with status 403 (Forbidden) on join game.
+        /// </summary>
+        [TestMethod]
+        public void TestMethod4()
+        {
+            dynamic game = new ExpandoObject();
+            game.UserToken = "9eb536af-50a1-476f-856e-ffff8f1b25d2";
+            game.TimeLimit = 10;
+            Response r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Forbidden, r.Status);
+
+            dynamic user = new ExpandoObject();
+            user.Nickname = "mj";
+            r = client.DoPostAsync("users", user).Result;
+            string token = (string)r.Data;
+
+            string word = (string)r.Data;
+            dynamic game2 = new ExpandoObject();
+            game2.UserToken = token;
+            game2.TimeLimit = 150;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Forbidden, r.Status);
+
+        }
+
+        /// <summary>
+        /// Tests to make sure if UserToken is already a player in the pending game, responds with status 409 (Conflict) on join game.
+        /// </summary>
+        [TestMethod]
+        public void TestMethod5()
+        {
+
+            dynamic user = new ExpandoObject();
+            user.Nickname = "mj";
+            Response r = client.DoPostAsync("users", user).Result;
+            string token = (string)r.Data;
+
+            string word = (string)r.Data;
+            dynamic game = new ExpandoObject();
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Forbidden, r.Status);
+
         }
     }
 }
