@@ -132,6 +132,7 @@ namespace Boggle
                     CurrGame.Player1.Nickname = user.Nickname;
                     CurrGame.Player1.UserToken = game.UserToken;
                     CurrGame.Player1.Score = 0;
+                    CurrGame.Player1.WordsList = new List<WordPlayed>();
                     CurrGame.TimeLimit = game.TimeLimit;
                     SetStatus(Accepted);
                     ID returnID = new ID();
@@ -153,6 +154,7 @@ namespace Boggle
                     CurrGame.Player2.Nickname = user.Nickname;
                     CurrGame.Player2.UserToken = game.UserToken;
                     CurrGame.Player2.Score = 0;
+                    CurrGame.Player2.WordsList = new List<WordPlayed>();
                     CurrGame.TimeLimit = (CurrGame.TimeLimit + game.TimeLimit) / 2;
                     CurrGame.TimeLeft = CurrGame.TimeLimit;
                     CurrGame.startTime = DateTime.Now;
@@ -197,13 +199,14 @@ namespace Boggle
             lock (sync)
             {
                 playWord.Word = playWord.Word.Trim();
+                playWord.Word = playWord.Word.ToUpper();
                 if (playWord.Word == null || playWord.Word.Equals("") || playWord.UserToken == null || playWord.UserToken.Equals(""))
                 {
                     SetStatus(Forbidden);
                     return null;
                 }
                 GameStatus status;
-                if(!gameStatus.TryGetValue(GameID, out status) || (!status.Player1.UserToken.Equals(playWord.UserToken)  && !status.Player1.UserToken.Equals(playWord.UserToken)))
+                if(!gameStatus.TryGetValue(GameID, out status) || (!status.Player1.UserToken.Equals(playWord.UserToken)  && !status.Player2.UserToken.Equals(playWord.UserToken)))
                 {
                     SetStatus(Forbidden);
                     return null;
@@ -403,7 +406,7 @@ namespace Boggle
                     gameStatusReturn.GameState = status.GameState;
                     gameStatusReturn.Board = status.Board.ToString();
                     gameStatusReturn.TimeLimit = status.TimeLimit;
-                    gameStatusReturn.TimeLeft = 0;
+                    gameStatusReturn.TimeLeft = status.TimeLeft;
                     PlayerReturn Player1 = new PlayerReturn();
                     Player1.Nickname = status.Player1.Nickname;
                     Player1.Score = status.Player1.Score;
