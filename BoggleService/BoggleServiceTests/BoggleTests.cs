@@ -4,6 +4,8 @@ using static System.Net.HttpStatusCode;
 using System.Diagnostics;
 using Newtonsoft.Json;
 using System.Dynamic;
+using Boggle;
+using System.IO;
 
 namespace Boggle
 {
@@ -633,6 +635,58 @@ namespace Boggle
             Assert.AreEqual(Conflict, r.Status);
 
             
+        }
+
+
+        [TestMethod]
+        public void TestMethod19()
+        {
+
+            dynamic user = new ExpandoObject();
+            user.Nickname = "mj";
+            Response r = client.DoPostAsync("users", user).Result;
+            string token = r.Data.UserToken;
+
+            dynamic game = new ExpandoObject();
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Accepted, r.Status);
+
+            user.Nickname = "bob";
+            r = client.DoPostAsync("users", user).Result;
+            token = r.Data.UserToken;
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Created, r.Status);
+
+            string gameID = r.Data.GameID;
+            r = client.DoGetAsync("games/" + gameID).Result;
+            BoggleBoard board = new BoggleBoard(r.Data.Board);
+
+            string line;
+            using (StreamReader file = new System.IO.StreamReader(AppDomain.CurrentDomain.BaseDirectory + "dictionary.txt"))
+            {
+                while ((line = file.ReadLine()) != null)
+                {
+                    if (line.Length == 3)
+                    {
+                        if (board.CanBeFormed(line))
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            dynamic playWord = new ExpandoObject();
+            playWord.UserToken = token;
+            playWord.Word = line;
+            r = client.DoPutAsync(playWord, "games/" + gameID).Result;
+            Assert.AreEqual(Accepted, r.Status);
+            Assert.AreEqual((int)r.Data.Score, 1);
+
         }
 
     }
