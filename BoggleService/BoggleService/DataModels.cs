@@ -142,7 +142,7 @@ namespace Boggle
     }
 
     /// <summary>
-    /// GameStatus class, stores all of the data for a game
+    /// GameStatus class for returning values
     /// </summary>
     [DataContractAttribute]
     public class GameStatusReturn
@@ -165,6 +165,9 @@ namespace Boggle
 
     }
 
+    /// <summary>
+    /// Player class for returning values 
+    /// </summary>
     [DataContractAttribute]
     public class PlayerReturn
     {

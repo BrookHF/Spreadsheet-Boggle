@@ -637,7 +637,6 @@ namespace Boggle
             
         }
 
-
         [TestMethod]
         public void TestMethod19()
         {
@@ -663,10 +662,11 @@ namespace Boggle
 
             string gameID = r.Data.GameID;
             r = client.DoGetAsync("games/" + gameID).Result;
-            BoggleBoard board = new BoggleBoard(r.Data.Board);
+            BoggleBoard board = new BoggleBoard(r.Data.Board.ToString());
 
+            //AppDomain.CurrentDomain.BaseDirectory + "/dictionary.txt")
             string line;
-            using (StreamReader file = new System.IO.StreamReader(AppDomain.CurrentDomain.BaseDirectory + "dictionary.txt"))
+            using (StreamReader file = new System.IO.StreamReader("dictionary.txt"))
             {
                 while ((line = file.ReadLine()) != null)
                 {
@@ -684,8 +684,418 @@ namespace Boggle
             playWord.UserToken = token;
             playWord.Word = line;
             r = client.DoPutAsync(playWord, "games/" + gameID).Result;
+            r = client.DoPutAsync(playWord, "games/" + gameID).Result;
+            Assert.AreEqual(OK, r.Status);
+            Assert.AreEqual((int)r.Data.Score, 0);
+
+        }
+
+        [TestMethod]
+        public void TestMethod20()
+        {
+
+            dynamic user = new ExpandoObject();
+            user.Nickname = "mj";
+            Response r = client.DoPostAsync("users", user).Result;
+            string token = r.Data.UserToken;
+
+            dynamic game = new ExpandoObject();
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            r = client.DoPostAsync("games", game).Result;
             Assert.AreEqual(Accepted, r.Status);
+
+            user.Nickname = "bob";
+            r = client.DoPostAsync("users", user).Result;
+            token = r.Data.UserToken;
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Created, r.Status);
+
+            string gameID = r.Data.GameID;
+            r = client.DoGetAsync("games/" + gameID).Result;
+            BoggleBoard board = new BoggleBoard(r.Data.Board.ToString());
+
+            //AppDomain.CurrentDomain.BaseDirectory + "/dictionary.txt")
+            string line;
+            using (StreamReader file = new System.IO.StreamReader("dictionary.txt"))
+            {
+                while ((line = file.ReadLine()) != null)
+                {
+                    if (line.Length == 2)
+                    {
+                        if (board.CanBeFormed(line))
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            dynamic playWord = new ExpandoObject();
+            playWord.UserToken = token;
+            playWord.Word = line;
+            r = client.DoPutAsync(playWord, "games/" + gameID).Result;
+            Assert.AreEqual(OK, r.Status);
+            Assert.AreEqual((int)r.Data.Score, 0);
+
+        }
+
+        [TestMethod]
+        public void TestMethod21()
+        {
+
+            dynamic user = new ExpandoObject();
+            user.Nickname = "mj";
+            Response r = client.DoPostAsync("users", user).Result;
+            string token = r.Data.UserToken;
+
+            dynamic game = new ExpandoObject();
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Accepted, r.Status);
+
+            user.Nickname = "bob";
+            r = client.DoPostAsync("users", user).Result;
+            token = r.Data.UserToken;
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Created, r.Status);
+
+            string gameID = r.Data.GameID;
+            r = client.DoGetAsync("games/" + gameID).Result;
+            BoggleBoard board = new BoggleBoard(r.Data.Board.ToString());
+
+            //AppDomain.CurrentDomain.BaseDirectory + "/dictionary.txt")
+            string line;
+            using (StreamReader file = new System.IO.StreamReader("dictionary.txt"))
+            {
+                while ((line = file.ReadLine()) != null)
+                {
+                    if (line.Length == 3)
+                    {
+                        if (board.CanBeFormed(line))
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            dynamic playWord = new ExpandoObject();
+            playWord.UserToken = token;
+            playWord.Word = line;
+            r = client.DoPutAsync(playWord, "games/" + gameID).Result;
+            Assert.AreEqual(OK, r.Status);
             Assert.AreEqual((int)r.Data.Score, 1);
+
+        }
+
+        //player 2 play length 4
+        [TestMethod]
+        public void TestMethod22()
+        {
+
+            dynamic user = new ExpandoObject();
+            user.Nickname = "mj";
+            Response r = client.DoPostAsync("users", user).Result;
+            string token = r.Data.UserToken;
+
+            dynamic game = new ExpandoObject();
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Accepted, r.Status);
+
+            user.Nickname = "bob";
+            r = client.DoPostAsync("users", user).Result;
+            token = r.Data.UserToken;
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Created, r.Status);
+
+            string gameID = r.Data.GameID;
+            r = client.DoGetAsync("games/" + gameID).Result;
+            BoggleBoard board = new BoggleBoard(r.Data.Board.ToString());
+
+            //AppDomain.CurrentDomain.BaseDirectory + "/dictionary.txt")
+            string line;
+            using (StreamReader file = new System.IO.StreamReader("dictionary.txt"))
+            {
+                while ((line = file.ReadLine()) != null)
+                {
+                    if (line.Length == 4)
+                    {
+                        if (board.CanBeFormed(line))
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            dynamic playWord = new ExpandoObject();
+            playWord.UserToken = token;
+            playWord.Word = line;
+            r = client.DoPutAsync(playWord, "games/" + gameID).Result;
+            Assert.AreEqual(OK, r.Status);
+            Assert.AreEqual((int)r.Data.Score, 1);
+
+        }
+
+        //player2 play length 5
+        [TestMethod]
+        public void TestMethod23()
+        {
+
+            dynamic user = new ExpandoObject();
+            user.Nickname = "mj";
+            Response r = client.DoPostAsync("users", user).Result;
+            string token = r.Data.UserToken;
+
+            dynamic game = new ExpandoObject();
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Accepted, r.Status);
+
+            user.Nickname = "bob";
+            r = client.DoPostAsync("users", user).Result;
+            token = r.Data.UserToken;
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Created, r.Status);
+
+            string gameID = r.Data.GameID;
+            r = client.DoGetAsync("games/" + gameID).Result;
+            BoggleBoard board = new BoggleBoard(r.Data.Board.ToString());
+
+            //AppDomain.CurrentDomain.BaseDirectory + "/dictionary.txt")
+            string line;
+            using (StreamReader file = new System.IO.StreamReader("dictionary.txt"))
+            {
+                while ((line = file.ReadLine()) != null)
+                {
+                    if (line.Length == 5)
+                    {
+                        if (board.CanBeFormed(line))
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            dynamic playWord = new ExpandoObject();
+            playWord.UserToken = token;
+            playWord.Word = line;
+            r = client.DoPutAsync(playWord, "games/" + gameID).Result;
+            Assert.AreEqual(OK, r.Status);
+            Assert.AreEqual((int)r.Data.Score, 2);
+
+        }
+
+        //player 2 play length 6
+        [TestMethod]
+        public void TestMethod24()
+        {
+
+            dynamic user = new ExpandoObject();
+            user.Nickname = "mj";
+            Response r = client.DoPostAsync("users", user).Result;
+            string token = r.Data.UserToken;
+
+            dynamic game = new ExpandoObject();
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Accepted, r.Status);
+
+            user.Nickname = "bob";
+            r = client.DoPostAsync("users", user).Result;
+            token = r.Data.UserToken;
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Created, r.Status);
+
+            string gameID = r.Data.GameID;
+            r = client.DoGetAsync("games/" + gameID).Result;
+            BoggleBoard board = new BoggleBoard(r.Data.Board.ToString());
+
+            //AppDomain.CurrentDomain.BaseDirectory + "/dictionary.txt")
+            string line;
+            using (StreamReader file = new System.IO.StreamReader("dictionary.txt"))
+            {
+                while ((line = file.ReadLine()) != null)
+                {
+                    if (line.Length == 6)
+                    {
+                        if (board.CanBeFormed(line))
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            dynamic playWord = new ExpandoObject();
+            playWord.UserToken = token;
+            playWord.Word = line;
+            r = client.DoPutAsync(playWord, "games/" + gameID).Result;
+            Assert.AreEqual(OK, r.Status);
+            Assert.AreEqual((int)r.Data.Score, 3);
+
+        }
+
+        //player1 play word
+        [TestMethod]
+        public void TestMethod25()
+        {
+
+            dynamic user = new ExpandoObject();
+            user.Nickname = "mj";
+            Response r2 = client.DoPostAsync("users", user).Result;
+            string token = r2.Data.UserToken;
+
+            dynamic game = new ExpandoObject();
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            Response r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Accepted, r.Status);
+
+            user.Nickname = "bob";
+            r = client.DoPostAsync("users", user).Result;
+            token = r.Data.UserToken;
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Created, r.Status);
+
+            string gameID = r.Data.GameID;
+            r = client.DoGetAsync("games/" + gameID).Result;
+            BoggleBoard board = new BoggleBoard(r.Data.Board.ToString());
+
+            //AppDomain.CurrentDomain.BaseDirectory + "/dictionary.txt")
+            string line;
+            using (StreamReader file = new System.IO.StreamReader("dictionary.txt"))
+            {
+                while ((line = file.ReadLine()) != null)
+                {
+                    if (line.Length == 3)
+                    {
+                        if (board.CanBeFormed(line))
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            dynamic playWord = new ExpandoObject();
+            token = r2.Data.UserToken;
+            playWord.UserToken = token;
+            playWord.Word = line;
+            r = client.DoPutAsync(playWord, "games/" + gameID).Result;
+            Assert.AreEqual(OK, r.Status);
+            Assert.AreEqual((int)r.Data.Score, 1);
+
+        }
+
+        //Duplicate word played
+        [TestMethod]
+        public void TestMethod26()
+        {
+
+            dynamic user = new ExpandoObject();
+            user.Nickname = "mj";
+            Response r2 = client.DoPostAsync("users", user).Result;
+            string token = r2.Data.UserToken;
+
+            dynamic game = new ExpandoObject();
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            Response r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Accepted, r.Status);
+
+            user.Nickname = "bob";
+            r = client.DoPostAsync("users", user).Result;
+            token = r.Data.UserToken;
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Created, r.Status);
+
+            string gameID = r.Data.GameID;
+            r = client.DoGetAsync("games/" + gameID).Result;
+            BoggleBoard board = new BoggleBoard(r.Data.Board.ToString());
+
+            //AppDomain.CurrentDomain.BaseDirectory + "/dictionary.txt")
+            string line;
+            using (StreamReader file = new System.IO.StreamReader("dictionary.txt"))
+            {
+                while ((line = file.ReadLine()) != null)
+                {
+                    if (line.Length == 3)
+                    {
+                        if (board.CanBeFormed(line))
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            dynamic playWord = new ExpandoObject();
+            token = r2.Data.UserToken;
+            playWord.UserToken = token;
+            playWord.Word = line;
+            r = client.DoPutAsync(playWord, "games/" + gameID).Result;
+            r = client.DoPutAsync(playWord, "games/" + gameID).Result;
+            Assert.AreEqual(OK, r.Status);
+            Assert.AreEqual((int)r.Data.Score, 0);
+
+        }
+
+        //Player 1 wrong word played
+        [TestMethod]
+        public void TestMethod27()
+        {
+
+            dynamic user = new ExpandoObject();
+            user.Nickname = "mj";
+            Response r2 = client.DoPostAsync("users", user).Result;
+            string token = r2.Data.UserToken;
+
+            dynamic game = new ExpandoObject();
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            Response r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Accepted, r.Status);
+
+            user.Nickname = "bob";
+            r = client.DoPostAsync("users", user).Result;
+            token = r.Data.UserToken;
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Created, r.Status);
+
+            string gameID = r.Data.GameID;
+            r = client.DoGetAsync("games/" + gameID).Result;     
+
+            dynamic playWord = new ExpandoObject();
+            token = r2.Data.UserToken;
+            playWord.UserToken = token;
+            playWord.Word = "xvli";
+            r = client.DoPutAsync(playWord, "games/" + gameID).Result;
+            Assert.AreEqual(OK, r.Status);
+            Assert.AreEqual((int)r.Data.Score, -1);
 
         }
 

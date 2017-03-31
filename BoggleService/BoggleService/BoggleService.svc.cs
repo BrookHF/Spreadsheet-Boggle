@@ -269,6 +269,16 @@ namespace Boggle
             }     
         }
 
+        /// <summary>
+        /// If GameID is invalid, responds with status 403 (Forbidden).
+        /// Otherwise, returns information about the game named by GameID as illustrated below.
+        /// Note that the information returned depends on whether "Brief=yes" was included as a parameter 
+        /// as well as on the state of the game. Responds with status code 200 (OK). 
+        /// Note: The Board and Words are not case sensitive.
+        /// </summary>
+        /// <param name="brief"></param>
+        /// <param name="GameID"></param>
+        /// <returns></returns>
         public GameStatusReturn GetGameStatus(string brief, string GameID)
         {
             //if gameID is invalid, respond with 403 forbidden
