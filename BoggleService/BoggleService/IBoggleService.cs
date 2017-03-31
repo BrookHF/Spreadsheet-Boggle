@@ -34,7 +34,7 @@ namespace Boggle
         [WebInvoke(Method = "PUT", UriTemplate = "/games/{GameID}")]
         ScoreChange PlayWord(PlayWord playWord, string GameID);
 
-        [WebGet( UriTemplate = "/games/{GameID}?Brief={brief}")]
-        object GetGameStatus(string brief, string GameID);
+        [WebGet(UriTemplate = "/games/{GameID}?Brief={brief}")]
+        GameStatusReturn GetGameStatus(string brief, string GameID);
     }
 }

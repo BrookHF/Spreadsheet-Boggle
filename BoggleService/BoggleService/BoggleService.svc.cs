@@ -99,10 +99,7 @@ namespace Boggle
 
                 Token token = new Token();
                 token.UserToken = Guid.NewGuid().ToString(); //Generates new token for user
-                while (users.ContainsKey(token.UserToken))
-                {
-                    token.UserToken = Guid.NewGuid().ToString();
-                }
+
                 users.Add(token.UserToken, user); //Stores nickname + token in dictionary.
                 SetStatus(Created);
                 return token;  
@@ -124,20 +121,17 @@ namespace Boggle
                     SetStatus(Forbidden);
                     return null;
                 }
-                //makes sure player doesnt play against themself
-                if (CurrGame.Player1.Nickname.Equals(getNickname(game.UserToken)))
-                {
-                    SetStatus(Conflict);
-                    return null;
-                }
                 //if they are the first player to join the game
                 if(CurrGame == null)
                 {
+                    
                     CurrGame = new GameStatus();
                     User user = new User();
                     users.TryGetValue(game.UserToken, out user);
+                    //CurrGame.Player1 = new Player();
                     CurrGame.Player1.Nickname = user.Nickname;
                     CurrGame.Player1.UserToken = game.UserToken;
+                    CurrGame.Player1.Score = 0;
                     CurrGame.TimeLimit = game.TimeLimit;
                     SetStatus(Accepted);
                     ID returnID = new ID();
@@ -146,11 +140,19 @@ namespace Boggle
                 }
                 else //if they are the 2nd player to join game
                 {
+                    //makes sure player doesnt play against themself
+                    if (CurrGame.Player1.UserToken.Equals(game.UserToken))
+                    {
+                        SetStatus(Conflict);
+                        return null;
+                    }
+
                     User user = new User();
                     users.TryGetValue(game.UserToken, out user);
                     CurrGame.GameState = "active";
                     CurrGame.Player2.Nickname = user.Nickname;
                     CurrGame.Player2.UserToken = game.UserToken;
+                    CurrGame.Player2.Score = 0;
                     CurrGame.TimeLimit = (CurrGame.TimeLimit + game.TimeLimit) / 2;
                     CurrGame.TimeLeft = CurrGame.TimeLimit;
                     CurrGame.startTime = DateTime.Now;
@@ -164,6 +166,7 @@ namespace Boggle
                 }
             }
         }
+
         /// <summary>
         /// Handles a request to cancel searching for a game.
         /// </summary>
@@ -172,7 +175,7 @@ namespace Boggle
         {
             lock (sync)
             {
-                if(CurrGame == null || !users.ContainsKey(token.UserToken) || CurrGame.Player1.Nickname != token.UserToken)
+                if(CurrGame == null || !users.ContainsKey(token.UserToken) || CurrGame.Player1.UserToken != token.UserToken)
                 {
                     SetStatus(Forbidden);
                     return;
@@ -286,113 +289,157 @@ namespace Boggle
             }     
         }
 
-        public object GetGameStatus(string brief, string GameID)
+        public GameStatusReturn GetGameStatus(string brief, string GameID)
         {
             //if gameID is invalid, respond with 403 forbidden
             GameStatus status;
-            if (!gameStatus.ContainsKey(GameID) || !gameStatus.TryGetValue(GameID, out status))
+            GameStatusReturn gameStatusReturn = new GameStatusReturn();
+            if (!gameStatus.ContainsKey(GameID)&& !GameIDCount.ToString().Equals(GameID))
             {
                 SetStatus(Forbidden);
                 return null;
             }
-            dynamic statusObject = new ExpandoObject();
-            if (status.GameState == "pending") //Response if pending
+            
+            if (!gameStatus.TryGetValue(GameID, out status))
             {
-                statusObject.GameState = status.GameState;
-                return statusObject;
+                status = CurrGame;
             }
-            else if (status.GameState == "active") //Response if active
+            if(status.GameState != "pending")
             {
-                status.TimeLeft = (int)DateTime.Now.Subtract(status.startTime).TotalSeconds;
+                status.TimeLeft = status.TimeLimit - (int)(DateTime.Now - status.startTime).TotalSeconds;
                 if (status.TimeLeft <= 0)
                 {
                     status.GameState = "completed";
-                    if (brief == "yes") //Completed + brief = yes
-                    {
-                        statusObject.GameState = status.GameState;
-                        statusObject.TimeLeft = status.TimeLeft;
-                        statusObject.Player1.Score = status.Player1.Score;
-                        statusObject.Player2.Score = status.Player2.Score;
-                    }
-                    else //Completed and no brief=yes
-                    {
-                        statusObject.GameState = status.GameState;
-                        statusObject.Board = status.Board.ToString();
-                        statusObject.TimeLimit = status.TimeLimit;
-                        statusObject.TimeLeft = status.TimeLeft;
-                        statusObject.Player1.Nickname = status.Player1.Nickname;
-                        statusObject.Player1.Score = status.Player1.Score;
-                        statusObject.Player1.WordsPlayed = status.Player1.WordsList;
-                        statusObject.Player2.Nickname = status.Player2.Nickname;
-                        statusObject.Player2.Score = status.Player2.Score;
-                        statusObject.Player2.WordsPlayed = status.Player2.WordsList;
-                    }
-                    return statusObject;
+                    status.TimeLeft = 0;
                 }
-                if (brief == "yes") //Active + brief = yes
+            }
+            
+            if (status.GameState == "pending") //Response if pending
+            {
+                gameStatusReturn.GameState = "pending";
+                return gameStatusReturn;
+            }
+            else if (status.GameState == "active") //Response if active
+            {
+                    
+                //if (status.TimeLeft <= 0)
+                //{
+                //    status.TimeLeft = 0;
+                //    status.GameState = "completed";
+                //    if (brief == "yes") //Completed + brief = yes
+                //    {
+                //        gameStatusReturn.GameState = status.GameState;
+                //        gameStatusReturn.TimeLeft = status.TimeLeft;
+                //        gameStatusReturn.Player1 = new PlayerReturn();
+                //        gameStatusReturn.Player2 = new PlayerReturn();
+                //        gameStatusReturn.Player1.Score = status.Player1.Score;
+                //        gameStatusReturn.Player2.Score = status.Player2.Score;
+                //    }
+                //    else //Completed and no brief=yes
+                //    {
+                //        gameStatusReturn.GameState = status.GameState;
+                //        gameStatusReturn.Board = status.Board.ToString();
+                //        gameStatusReturn.TimeLimit = status.TimeLimit;
+                //        gameStatusReturn.TimeLeft = 0;
+
+                //        PlayerReturn Player1 = new PlayerReturn();
+                //        Player1.Nickname = status.Player1.Nickname;
+                //        Player1.Score = status.Player1.Score;
+                //        Player1.WordsPlayed = status.Player1.WordsList;
+
+                //        PlayerReturn Player2 = new PlayerReturn();
+                //        Player2.Nickname = status.Player2.Nickname;
+                //        Player2.Score = status.Player2.Score;
+                //        Player2.WordsPlayed = status.Player2.WordsList;
+
+                //        gameStatusReturn.Player1 = Player1;
+                //        gameStatusReturn.Player2 = Player2;
+                //    }
+                //    return gameStatusReturn;
+                //}
+                if (brief != null) //Active + brief = yes
                 {
-                    statusObject.GameState = status.GameState;
-                    statusObject.TimeLeft = status.TimeLeft;
-                    statusObject.Player1.Score = status.Player1.Score;
-                    statusObject.Player2.Score = status.Player2.Score;
+                    gameStatusReturn.GameState = status.GameState;
+                    gameStatusReturn.TimeLeft = status.TimeLeft;
+                    gameStatusReturn.Player1 = new PlayerReturn();
+                    gameStatusReturn.Player2 = new PlayerReturn();
+                    gameStatusReturn.Player1.Score = status.Player1.Score;
+                    gameStatusReturn.Player2.Score = status.Player2.Score;
                 }
                 else //Active without brief = yes
                 {
-                    statusObject.GameState = status.GameState;
-                    statusObject.Board = status.Board.ToString();
-                    statusObject.TimeLimit = status.TimeLimit;
-                    statusObject.TimeLeft = status.TimeLeft;
-                    statusObject.Player1.Nickname = status.Player1.Nickname;
-                    statusObject.Player1.Score = status.Player1.Score;
-                    statusObject.Player2.Nickname = status.Player2.Nickname;
-                    statusObject.Player2.Score = status.Player2.Score;
+                    gameStatusReturn.GameState = status.GameState;
+                    gameStatusReturn.Board = status.Board.ToString();
+                    gameStatusReturn.TimeLimit = status.TimeLimit;
+                    gameStatusReturn.TimeLeft = status.TimeLeft;
+                    PlayerReturn Player1 = new PlayerReturn();
+                    Player1.Nickname = status.Player1.Nickname;
+                    Player1.Score = status.Player1.Score;
+                    Player1.WordsPlayed = status.Player1.WordsList;
+
+                    PlayerReturn Player2 = new PlayerReturn();
+                    Player2.Nickname = status.Player2.Nickname;
+                    Player2.Score = status.Player2.Score;
+                    Player2.WordsPlayed = status.Player2.WordsList;
+
+                    gameStatusReturn.Player1 = Player1;
+                    gameStatusReturn.Player2 = Player2;
+
                 }
             }
             else //Completed
             {
-                if (brief == "yes") //Completed + brief = yes
+                if (brief != null) //Completed + brief = yes
                 {
-                    statusObject.GameState = status.GameState;
-                    statusObject.TimeLeft = status.TimeLeft;
-                    statusObject.Player1.Score = status.Player1.Score;
-                    statusObject.Player2.Score = status.Player2.Score;
+                    gameStatusReturn.GameState = "completed";
+                    gameStatusReturn.TimeLeft = 0;
+                    gameStatusReturn.Player1 = new PlayerReturn();
+                    gameStatusReturn.Player2 = new PlayerReturn();
+                    gameStatusReturn.Player1.Score = status.Player1.Score;
+                    gameStatusReturn.Player2.Score = status.Player2.Score;
                 }
                 else //Completed and no brief=yes
                 {
-                    statusObject.GameState = status.GameState;
-                    statusObject.Board = status.Board.ToString();
-                    statusObject.TimeLimit = status.TimeLimit;
-                    statusObject.TimeLeft = status.TimeLeft;
-                    statusObject.Player1.Nickname = status.Player1.Nickname;
-                    statusObject.Player1.Score = status.Player1.Score;
-                    statusObject.Player1.WordsPlayed = status.Player1.WordsList;
-                    statusObject.Player2.Nickname = status.Player2.Nickname;
-                    statusObject.Player2.Score = status.Player2.Score;
-                    statusObject.Player2.WordsPlayed = status.Player2.WordsList;
+                    gameStatusReturn.GameState = status.GameState;
+                    gameStatusReturn.Board = status.Board.ToString();
+                    gameStatusReturn.TimeLimit = status.TimeLimit;
+                    gameStatusReturn.TimeLeft = 0;
+                    PlayerReturn Player1 = new PlayerReturn();
+                    Player1.Nickname = status.Player1.Nickname;
+                    Player1.Score = status.Player1.Score;
+                    Player1.WordsPlayed = status.Player1.WordsList;
+
+                    PlayerReturn Player2 = new PlayerReturn();
+                    Player2.Nickname = status.Player2.Nickname;
+                    Player2.Score = status.Player2.Score;
+                    Player2.WordsPlayed = status.Player2.WordsList;
+
+                    gameStatusReturn.Player1 = Player1;
+                    gameStatusReturn.Player2 = Player2;
                 }
             }
-            return statusObject;
+            return gameStatusReturn;
 
         }
 
-        /// <summary>
-        /// Helper method to obtain a nickname from a user token
-        /// </summary>
-        /// <param name="userToken"></param>
-        /// <returns></returns>
-        private string getNickname(string userToken)
-        {
-            User name;
-            if(users.TryGetValue(userToken, out name))
-            {
-                return name.Nickname;
-            }
-            else
-            {
-                return null;
-            }
+        ///// <summary>
+        ///// Helper method to obtain a nickname from a user token
+        ///// </summary>
+        ///// <param name="userToken"></param>
+        ///// <returns></returns>
+        //private string getNickname(string userToken)
+        //{
+        //    User name;
+        //    if(users.TryGetValue(userToken, out name))
+        //    {
+        //        return name.Nickname;
+        //    }
+        //    else
+        //    {
+        //        return null;
+        //    }
             
-        }
+        //}
 
         /// <summary>
         /// Populates our dictionary from dictionary.txt

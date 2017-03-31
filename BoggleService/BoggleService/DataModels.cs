@@ -140,4 +140,42 @@ namespace Boggle
         [DataMember]
         public int Score { get; set; }
     }
+
+    /// <summary>
+    /// GameStatus class, stores all of the data for a game
+    /// </summary>
+    [DataContractAttribute]
+    public class GameStatusReturn
+    {
+        [DataMember]
+        public string GameState { get; set; }
+        
+        [DataMember(EmitDefaultValue = false)]
+        public String Board { get; set; }
+
+        [DataMember(EmitDefaultValue = false)]
+        public int TimeLimit { get; set; }
+        [DataMember(EmitDefaultValue = false)]
+        public int TimeLeft { get; set; }
+        [DataMember(EmitDefaultValue = false)]
+        public PlayerReturn Player1 { get; set; }
+        [DataMember(EmitDefaultValue = false)]
+        public PlayerReturn Player2 { get; set; }
+
+
+    }
+
+    [DataContractAttribute]
+    public class PlayerReturn
+    {
+        [DataMember(EmitDefaultValue = false)]
+        public string Nickname { get; set; }
+        [DataMember(EmitDefaultValue = false)]
+        public string UserToken { get; set; }
+        [DataMember]
+        public int Score { get; set; }
+        
+        [DataMember(EmitDefaultValue = false)]
+        public List<WordPlayed> WordsPlayed { get; set; }
+    }
 }
