@@ -41,38 +41,7 @@ namespace Boggle
             return File.OpenRead(AppDomain.CurrentDomain.BaseDirectory + "index.html");
         }
 
-        /// <summary>
-        /// Demo.  You can delete this.
-        /// </summary>
-        public string WordAtIndex(int n)
-        {
-            if (n < 0)
-            {
-                SetStatus(Forbidden);
-                return null;
-            }
-
-            string line;
-            using (StreamReader file = new System.IO.StreamReader(AppDomain.CurrentDomain.BaseDirectory + "dictionary.txt"))
-            {
-                while ((line = file.ReadLine()) != null)
-                {
-                    if (n == 0) break;
-                    n--;
-                }
-            }
-
-            if (n == 0)
-            {
-                SetStatus(OK);
-                return line;
-            }
-            else
-            {
-                SetStatus(Forbidden);
-                return null;
-            }
-        }
+        
 
         /// <summary>
         /// Handles a call to the server to create a new user based on the nickname passed in.
@@ -200,6 +169,10 @@ namespace Boggle
             {
                 playWord.Word = playWord.Word.Trim();
                 playWord.Word = playWord.Word.ToUpper();
+
+                GameStatusReturn r = GetGameStatus("yes", GameID);
+
+
                 if (playWord.Word == null || playWord.Word.Equals("") || playWord.UserToken == null || playWord.UserToken.Equals(""))
                 {
                     SetStatus(Forbidden);
@@ -211,7 +184,7 @@ namespace Boggle
                     SetStatus(Forbidden);
                     return null;
                 }
-                if(!status.GameState.Equals("active"))
+                if (!status.GameState.Equals("active"))
                 {
                     SetStatus(Conflict);
                     return null;
@@ -266,10 +239,12 @@ namespace Boggle
                     wordPlayed.Score = score.Score;
                     if(isPlayer1)
                     {
+                        status.Player1.Score += score.Score;
                         status.Player1.WordsList.Add(wordPlayed);
                     }
                     else
                     {
+                        status.Player2.Score += score.Score;
                         status.Player2.WordsList.Add(wordPlayed);
                     }                 
                     return score;
@@ -281,10 +256,12 @@ namespace Boggle
                     wordPlayed.Score = score.Score;
                     if (isPlayer1)
                     {
+                        status.Player1.Score += score.Score;
                         status.Player1.WordsList.Add(wordPlayed);
                     }
                     else
                     {
+                        status.Player2.Score += score.Score;
                         status.Player2.WordsList.Add(wordPlayed);
                     }
                     return score;
@@ -324,43 +301,7 @@ namespace Boggle
             }
             else if (status.GameState == "active") //Response if active
             {
-                    
-                //if (status.TimeLeft <= 0)
-                //{
-                //    status.TimeLeft = 0;
-                //    status.GameState = "completed";
-                //    if (brief == "yes") //Completed + brief = yes
-                //    {
-                //        gameStatusReturn.GameState = status.GameState;
-                //        gameStatusReturn.TimeLeft = status.TimeLeft;
-                //        gameStatusReturn.Player1 = new PlayerReturn();
-                //        gameStatusReturn.Player2 = new PlayerReturn();
-                //        gameStatusReturn.Player1.Score = status.Player1.Score;
-                //        gameStatusReturn.Player2.Score = status.Player2.Score;
-                //    }
-                //    else //Completed and no brief=yes
-                //    {
-                //        gameStatusReturn.GameState = status.GameState;
-                //        gameStatusReturn.Board = status.Board.ToString();
-                //        gameStatusReturn.TimeLimit = status.TimeLimit;
-                //        gameStatusReturn.TimeLeft = 0;
-
-                //        PlayerReturn Player1 = new PlayerReturn();
-                //        Player1.Nickname = status.Player1.Nickname;
-                //        Player1.Score = status.Player1.Score;
-                //        Player1.WordsPlayed = status.Player1.WordsList;
-
-                //        PlayerReturn Player2 = new PlayerReturn();
-                //        Player2.Nickname = status.Player2.Nickname;
-                //        Player2.Score = status.Player2.Score;
-                //        Player2.WordsPlayed = status.Player2.WordsList;
-
-                //        gameStatusReturn.Player1 = Player1;
-                //        gameStatusReturn.Player2 = Player2;
-                //    }
-                //    return gameStatusReturn;
-                //}
-                if (brief != null) //Active + brief = yes
+                if (brief == "yes") //Active + brief = yes
                 {
                     gameStatusReturn.GameState = status.GameState;
                     gameStatusReturn.TimeLeft = status.TimeLeft;
@@ -392,7 +333,7 @@ namespace Boggle
             }
             else //Completed
             {
-                if (brief != null) //Completed + brief = yes
+                if (brief == "yes") //Completed + brief = yes
                 {
                     gameStatusReturn.GameState = "completed";
                     gameStatusReturn.TimeLeft = 0;
@@ -425,24 +366,7 @@ namespace Boggle
 
         }
 
-        ///// <summary>
-        ///// Helper method to obtain a nickname from a user token
-        ///// </summary>
-        ///// <param name="userToken"></param>
-        ///// <returns></returns>
-        //private string getNickname(string userToken)
-        //{
-        //    User name;
-        //    if(users.TryGetValue(userToken, out name))
-        //    {
-        //        return name.Nickname;
-        //    }
-        //    else
-        //    {
-        //        return null;
-        //    }
-            
-        //}
+        
 
         /// <summary>
         /// Populates our dictionary from dictionary.txt

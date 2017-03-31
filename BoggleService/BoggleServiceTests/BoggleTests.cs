@@ -427,7 +427,7 @@ namespace Boggle
             Assert.AreEqual(Created, r.Status);
 
             string gameID = r.Data.GameID;
-            r = client.DoGetAsync("games/" + gameID, "Brief=yes").Result;
+            r = client.DoGetAsync("games/" + gameID + "?Brief={0}", "yes").Result;
             Assert.AreEqual(OK, r.Status);
             Assert.AreEqual("active", r.Data.GameState.ToString());
             Assert.IsTrue(r.Data.TimeLeft > 0);
@@ -464,7 +464,7 @@ namespace Boggle
             }
             
             string gameID = r.Data.GameID;
-            r = client.DoGetAsync("games/" + gameID, "Brief=yes").Result;
+            r = client.DoGetAsync("games/" + gameID + "?Brief={0}", "yes").Result;
             Assert.AreEqual(OK, r.Status);
             Assert.AreEqual("completed", r.Data.GameState.ToString());
             Assert.IsTrue(r.Data.TimeLeft == 0);
@@ -497,9 +497,6 @@ namespace Boggle
             Assert.AreEqual(Created, r.Status);
 
 
-
-
-
             string gameID = r.Data.GameID;
 
             dynamic word = new ExpandoObject();
@@ -509,5 +506,134 @@ namespace Boggle
 
             Assert.AreEqual(OK, r.Status);
         }
+
+        [TestMethod]
+        public void TestMethod16()
+        {
+
+            dynamic user = new ExpandoObject();
+            user.Nickname = "mj";
+            Response r = client.DoPostAsync("users", user).Result;
+            string token = r.Data.UserToken;
+
+            dynamic game = new ExpandoObject();
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Accepted, r.Status);
+
+            user.Nickname = "mj";
+            r = client.DoPostAsync("users", user).Result;
+            token = r.Data.UserToken;
+            game.UserToken = token;
+            game.TimeLimit = 10;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Created, r.Status);
+
+            string gameID = "hello";
+            r = client.DoGetAsync("games/" + gameID).Result;
+            Assert.AreEqual(Forbidden, r.Status);
+        }
+        [TestMethod]
+        public void TestMethod17()
+        {
+            dynamic user = new ExpandoObject();
+            user.Nickname = "mj";
+            Response r = client.DoPostAsync("users", user).Result;
+            string token = r.Data.UserToken;
+
+            dynamic game = new ExpandoObject();
+            game.UserToken = token;
+            game.TimeLimit = 15;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Accepted, r.Status);
+
+            user.Nickname = "bob";
+            r = client.DoPostAsync("users", user).Result;
+            token = r.Data.UserToken;
+            game.UserToken = token;
+            game.TimeLimit = 15;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Created, r.Status);
+
+
+            string gameID = r.Data.GameID;
+
+           
+            dynamic word = new ExpandoObject();
+           
+            //Word is empty
+            word.Word = "";
+            word.UserToken = token;
+            r = client.DoPutAsync(word, "games/" + gameID).Result;
+            Assert.AreEqual(Forbidden, r.Status);
+
+            //Usertoken is null
+            word.Word = "truck";
+            word.UserToken = null;
+            r = client.DoPutAsync(word, "games/" + gameID).Result;
+            Assert.AreEqual(Forbidden, r.Status);
+
+            //Usertoken is empty
+            word.Word = "truck";
+            word.UserToken = "";
+            r = client.DoPutAsync(word, "games/" + gameID).Result;
+            Assert.AreEqual(Forbidden, r.Status);
+
+            //GameID is invalid
+            word.Word = "truck";
+            word.UserToken = "";
+            r = client.DoPutAsync(word, "games/" + "50").Result;
+            Assert.AreEqual(Forbidden, r.Status);
+
+            //UserToken invalid
+            word.Word = "truck";
+            word.UserToken = "1235482u398shisejf";
+            r = client.DoPutAsync(word, "games/" + "50").Result;
+            Assert.AreEqual(Forbidden, r.Status);
+
+        }
+
+        [TestMethod]
+        public void TestMethod18()
+        {
+            dynamic user = new ExpandoObject();
+            user.Nickname = "mj";
+            Response r = client.DoPostAsync("users", user).Result;
+            string token = r.Data.UserToken;
+
+            dynamic game = new ExpandoObject();
+            game.UserToken = token;
+            game.TimeLimit = 5;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Accepted, r.Status);
+
+            user.Nickname = "bob";
+            r = client.DoPostAsync("users", user).Result;
+            token = r.Data.UserToken;
+            game.UserToken = token;
+            game.TimeLimit = 5;
+            r = client.DoPostAsync("games", game).Result;
+            Assert.AreEqual(Created, r.Status);
+
+            string gameID = r.Data.GameID;
+
+            dynamic word = new ExpandoObject();
+            word.Word = "fort";
+            word.UserToken = token;
+
+         
+            DateTime newTime = DateTime.Now.AddSeconds(7);
+            while (DateTime.Now < newTime)
+            {
+            }
+
+            r = client.DoPutAsync(word, "games/" + gameID).Result;
+
+            Assert.AreEqual(Conflict, r.Status);
+
+            
+        }
+
     }
 }
