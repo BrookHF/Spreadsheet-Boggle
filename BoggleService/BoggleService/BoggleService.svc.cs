@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Data.SqlClient;
 using System.Dynamic;
 using System.IO;
 using System.Net;
@@ -12,8 +14,7 @@ namespace Boggle
 {
     public class BoggleService : IBoggleService
     {
-
-        private readonly static Dictionary<string, User> users = new Dictionary<string, User>();
+        private static string BoggleDB;
         private readonly static Dictionary<string, GameStatus> gameStatus = new Dictionary<string, GameStatus>();
         private static readonly object sync = new object();
         private static int GameIDCount = 100;
@@ -41,45 +42,163 @@ namespace Boggle
             return File.OpenRead(AppDomain.CurrentDomain.BaseDirectory + "index.html");
         }
 
-        
+        static BoggleService()
+        {
+            // Saves the connection string for the database.  A connection string contains the
+            // information necessary to connect with the database server.  When you create a
+            // DB, there is generally a way to obtain the connection string.  From the Server
+            // Explorer pane, obtain the properties of DB to see the connection string.
+
+            // The connection string of my ToDoDB.mdf shows as
+            //
+            //    Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename="C:\Users\zachary\Source\CS 3500 S16\examples\ToDoList\ToDoListDB\App_Data\ToDoDB.mdf";Integrated Security=True
+            //
+            // Unfortunately, this is absolute pathname on my computer, which means that it
+            // won't work if the solution is moved.  Fortunately, it can be shorted to
+            //
+            //    Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename="|DataDirectory|\ToDoDB.mdf";Integrated Security=True
+            //
+            // You should shorten yours this way as well.
+            //
+            // Rather than build the connection string into the program, I store it in the Web.config
+            // file where it can be easily found and changed.  You should do that too.
+            BoggleDB = ConfigurationManager.ConnectionStrings["BoggleDB"].ConnectionString;
+        }
 
         /// <summary>
         /// Handles a call to the server to create a new user based on the nickname passed in.
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
+        //public Token CreateUser(User user)
+        //{
+        //    lock (sync)
+        //    {
+        //        //For the first launch of the server, populate the dictionary
+        //        if (dictionary.Count == 0)
+        //        {
+        //            FillDictionary();
+        //        }
+
+        //        if (user.Nickname == null)
+        //        {
+        //            SetStatus(Forbidden);
+        //            return null;
+        //        }
+
+        //        user.Nickname = user.Nickname.Trim();
+
+        //        //Checks to make sure a non-empty nickname was provided
+        //        if (user.Nickname.Equals(""))
+        //        {
+        //            SetStatus(Forbidden);
+        //            return null;
+        //        }
+
+        //        Token token = new Token();
+        //        token.UserToken = Guid.NewGuid().ToString(); //Generates new token for user
+
+        //        users.Add(token.UserToken, user); //Stores nickname + token in dictionary.
+        //        SetStatus(Created);
+        //        return token;  
+        //    }
+        //}
+
         public Token CreateUser(User user)
         {
-            lock (sync)
+            lock(sync)
             {
+                Token token = new Token();
+
                 //For the first launch of the server, populate the dictionary
                 if (dictionary.Count == 0)
                 {
                     FillDictionary();
                 }
 
-                if (user.Nickname == null)
+                // This validates the user.Name property.  It is best to do any work that doesn't
+                // involve the database before creating the DB connection or after closing it.
+                if (user.Nickname == null || user.Nickname.Trim().Length == 0 || user.Nickname.Trim().Length > 50)
                 {
                     SetStatus(Forbidden);
                     return null;
                 }
 
-                user.Nickname = user.Nickname.Trim();
-
-                //Checks to make sure a non-empty nickname was provided
-                if (user.Nickname.Equals(""))
+                // The first step to using the DB is opening a connection to it.  Creating it in a
+                // using block guarantees that the connection will be closed when control leaves
+                // the block.  As you'll see below, I also follow this pattern for SQLTransactions,
+                // SqlCommands, and SqlDataReaders.
+                using (SqlConnection conn = new SqlConnection(BoggleDB))
                 {
-                    SetStatus(Forbidden);
-                    return null;
+                    // Connections must be opened
+                    conn.Open();
+
+                    // Database commands should be executed within a transaction.  When commands 
+                    // are executed within a transaction, either all of the commands will succeed
+                    // or all will be canceled.  You don't have to worry about some of the commands
+                    // changing the DB and others failing.
+                    using (SqlTransaction trans = conn.BeginTransaction())
+                    {
+                        // An SqlCommand executes a SQL statement on the database.  In this case it is an
+                        // insert statement.  The first parameter is the statement, the second is the
+                        // connection, and the third is the transaction.  
+                        //
+                        // Note that I use symbols like @UserID as placeholders for values that need to appear
+                        // in the statement.  You will see below how the placeholders are replaced.  You may be
+                        // tempted to simply paste the values into the string, but this is a BAD IDEA that violates
+                        // a cardinal rule of DB Security 101.  By using the placeholder approach, you don't have
+                        // to worry about escaping special characters and you don't have to worry about one form
+                        // of the SQL injection attack.
+                        using (SqlCommand command =
+                            new SqlCommand("insert into Users (UserToken, Nickname) values(@UserToken, @Nickname)",
+                                            conn,
+                                            trans))
+                        {
+                            // We generate the userID to use.
+                            string UserToken = Guid.NewGuid().ToString();
+
+                            // This is where the placeholders are replaced.
+                            command.Parameters.AddWithValue("@UserToken", UserToken);
+                            command.Parameters.AddWithValue("@Nickname", user.Nickname.Trim());
+
+                            token.UserToken = UserToken;
+                            // This executes the command within the transaction over the connection.  The number of rows
+                            // that were modified is returned.  Perhaps I should check and make sure that 1 is returned
+                            // as expected.
+                            command.ExecuteNonQuery();
+                            SetStatus(Created);
+
+                            // Immediately before each return that appears within the scope of a transaction, it is
+                            // important to commit the transaction.  Otherwise, the transaction will be aborted and
+                            // rolled back as soon as control leaves the scope of the transaction. 
+                            trans.Commit();
+                            return token;
+                        }
+                    }
                 }
-
-                Token token = new Token();
-                token.UserToken = Guid.NewGuid().ToString(); //Generates new token for user
-
-                users.Add(token.UserToken, user); //Stores nickname + token in dictionary.
-                SetStatus(Created);
-                return token;  
             }
+            
+
+            // The method can terminate with a thrown exception for any number of reasons.  For example:
+            //
+            //  - The DB connection might fail
+            //  - The DB may find it necessary to abort the transaction because of a conflict with
+            //     some other user's transaction
+            //  - The insert may fail because it violates a primary key constraint 
+            //
+            // In a more robust implementation, we would want to catch and deal with exceptions if.  For example:
+            //
+            //  - If the DB aborts a transaction, we could just try it again.
+            //  - If the userID violates a uniqueness constraint because it is a duplicate, we could generate
+            //     a different one and try again.
+            //
+            // An unhandled exception in a REST request will not crash the server.  In a production server, we 
+            // would want to record all unhandled exceptions to a log file for later examination.  Otherwise,
+            // problems might remain undetected.  There is a probably a way to configure IIS so that it automtically 
+            // logs exceptions.  
+            //
+            // For your purposes, it is best to simply let unhandled exceptions propagate.  This will make
+            // debugging easier.
         }
 
         /// <summary>
@@ -91,59 +210,108 @@ namespace Boggle
         {
             lock (sync)
             {
-                //checks to make sure user is registered, and game time is withing 5-120 seconds.
-                if (!users.ContainsKey(game.UserToken) || game.TimeLimit<5 || game.TimeLimit>120)
+                if (game.UserToken == null)
                 {
                     SetStatus(Forbidden);
                     return null;
                 }
-                //if they are the first player to join the game
-                if(CurrGame == null)
-                {
-                    
-                    CurrGame = new GameStatus();
-                    User user = new User();
-                    users.TryGetValue(game.UserToken, out user);
-                    //CurrGame.Player1 = new Player();
-                    CurrGame.Player1.Nickname = user.Nickname;
-                    CurrGame.Player1.UserToken = game.UserToken;
-                    CurrGame.Player1.Score = 0;
-                    CurrGame.Player1.WordsList = new List<WordPlayed>();
-                    CurrGame.TimeLimit = game.TimeLimit;
-                    SetStatus(Accepted);
-                    ID returnID = new ID();
-                    returnID.GameID = GameIDCount.ToString();
-                    return returnID;
-                }
-                else //if they are the 2nd player to join game
-                {
-                    //makes sure player doesnt play against themself
-                    if (CurrGame.Player1.UserToken.Equals(game.UserToken))
-                    {
-                        SetStatus(Conflict);
-                        return null;
-                    }
 
-                    User user = new User();
-                    users.TryGetValue(game.UserToken, out user);
-                    CurrGame.GameState = "active";
-                    CurrGame.Player2.Nickname = user.Nickname;
-                    CurrGame.Player2.UserToken = game.UserToken;
-                    CurrGame.Player2.Score = 0;
-                    CurrGame.Player2.WordsList = new List<WordPlayed>();
-                    CurrGame.TimeLimit = (CurrGame.TimeLimit + game.TimeLimit) / 2;
-                    CurrGame.TimeLeft = CurrGame.TimeLimit;
-                    CurrGame.startTime = DateTime.Now;
-                    gameStatus.Add(GameIDCount.ToString(), CurrGame);
-                    CurrGame = null;
-                    SetStatus(Created);
-                    ID returnID = new ID();
-                    returnID.GameID = GameIDCount.ToString();
-                    GameIDCount++;
-                    return returnID;
+                using (SqlConnection conn = new SqlConnection(BoggleDB))
+                {
+                    conn.Open();
+                    using (SqlTransaction trans = conn.BeginTransaction())
+                    {
+
+                        // Here, the SqlCommand is a select query.  We are interested in whether item.UserID exists in
+                        // the Users table.
+                        using (SqlCommand command = new SqlCommand("select UserToken from Users where UserToken = @UserToken", conn, trans))
+                        {
+                            command.Parameters.AddWithValue("@UserToken", game.UserToken);
+
+                            // This executes a query (i.e. a select statement).  The result is an
+                            // SqlDataReader that you can use to iterate through the rows in the response.
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
+                                // In this we don't actually need to read any data; we only need
+                                // to know whether a row was returned.
+                                if (reader["UserToken"] == null)
+                                {
+                                    SetStatus(Forbidden);
+                                    return null;
+                                }
+                            }
+                            if (game.TimeLimit < 5 || game.TimeLimit > 120)
+                            {
+                                SetStatus(Forbidden);
+                                return null;
+                            }
+                        }
+
+                        using (SqlCommand command = new SqlCommand("select GameState, GameID, TimeLimit, Player1 from Games where GameState = @GameState", conn, trans))
+                        {
+                            command.Parameters.AddWithValue("@GameState", "pending");
+
+                            // This executes a query (i.e. a select statement).  The result is an
+                            // SqlDataReader that you can use to iterate through the rows in the response.
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
+                                //There is not a pending game
+                                if (!reader.HasRows)
+                                {
+
+                                    using (SqlCommand insertCommand = new SqlCommand("insert into Games (Player1, GameState, TimeLimit) output inserted.ItemID values(@Player1, @GameState, @TimeLimit)", conn, trans))
+                                    {
+                                        command.Parameters.AddWithValue("@Player1", game.UserToken);
+                                        command.Parameters.AddWithValue("@GameState", "pending");
+                                        command.Parameters.AddWithValue("@TimeLimit", game.TimeLimit);
+
+                                        // We execute the command with the ExecuteScalar method, which will return to
+                                        // us the requested auto-generated ItemID.
+                                        string itemID = command.ExecuteScalar().ToString();
+                                        SetStatus(Created);
+                                        trans.Commit();
+                                        ID returnID = new ID();
+                                        returnID.GameID = GameIDCount.ToString();
+                                        return returnID;
+                                    }
+                                }
+                                //There is a pending game
+
+                                else {
+                                    //makes sure player doesnt play against themself
+                                    if(reader["Player1"].ToString() == game.UserToken)
+                                    {
+                                        SetStatus(Conflict);
+                                        return null;
+                                    }
+
+                                    using (SqlCommand updateCommand = new SqlCommand("UPDATE Games SET player2 = @Player2, GameState = @GameState, Board = @Board, TimeLimit = @TimeLimit, StartTime = @StartTime", conn, trans))
+                                    {
+                                        command.Parameters.AddWithValue("@Player2", game.UserToken);
+                                        command.Parameters.AddWithValue("@GameState", "active");
+                                        command.Parameters.AddWithValue("@TimeLimit", (game.TimeLimit + (int)reader["TimeLimit"]) / 2);
+                                        BoggleBoard board = new BoggleBoard();
+                                        command.Parameters.AddWithValue("@Board", board.ToString());
+                                        command.Parameters.AddWithValue("@StartTime", DateTime.Now);
+
+                                        // We execute the command with the ExecuteScalar method, which will return to
+                                        // us the requested auto-generated ItemID.
+                                        string itemID = command.ExecuteScalar().ToString();
+                                        SetStatus(Created);
+                                        trans.Commit();
+                                        ID returnID = new ID();
+                                        returnID.GameID = reader["GameID"].ToString();
+                                        return returnID;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
-        }
+
+            }
+        
 
         /// <summary>
         /// Handles a request to cancel searching for a game.
