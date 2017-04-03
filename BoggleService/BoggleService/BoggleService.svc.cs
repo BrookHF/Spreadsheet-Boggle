@@ -57,10 +57,17 @@ namespace Boggle
                 {
                     FillDictionary();
                 }
+
+                if (user.Nickname == null)
+                {
+                    SetStatus(Forbidden);
+                    return null;
+                }
+
                 user.Nickname = user.Nickname.Trim();
 
                 //Checks to make sure a non-empty nickname was provided
-                if (user.Nickname == null || user.Nickname.Equals(""))
+                if (user.Nickname.Equals(""))
                 {
                     SetStatus(Forbidden);
                     return null;
@@ -179,7 +186,16 @@ namespace Boggle
                     return null;
                 }
                 GameStatus status;
-                if(!gameStatus.TryGetValue(GameID, out status) || (!status.Player1.UserToken.Equals(playWord.UserToken)  && !status.Player2.UserToken.Equals(playWord.UserToken)))
+                if(!gameStatus.TryGetValue(GameID, out status))
+                {
+                    if (GameIDCount.ToString() == GameID) {
+                        SetStatus(Conflict);
+                        return null;
+                    }
+                    SetStatus(Forbidden);
+                    return null;
+                }
+                else if((!status.Player1.UserToken.Equals(playWord.UserToken)  && !status.Player2.UserToken.Equals(playWord.UserToken)))
                 {
                     SetStatus(Forbidden);
                     return null;
@@ -194,6 +210,23 @@ namespace Boggle
                 ScoreChange score = new ScoreChange();
                 wordPlayed.Word = playWord.Word;
                 bool isPlayer1 = status.Player1.UserToken.Equals(playWord.UserToken);
+                if (playWord.Word.Length <= 2)
+                {
+                    if (isPlayer1)
+                    {
+                        wordPlayed.Score = 0;
+                        status.Player1.WordsList.Add(wordPlayed);
+                        score.Score = 0;
+                        return score;
+                    }
+                    else
+                    {
+                        wordPlayed.Score = 0;
+                        status.Player2.WordsList.Add(wordPlayed);
+                        score.Score = 0;
+                        return score;
+                    }
+                }
                 if (status.Board.CanBeFormed(playWord.Word) && dictionary.Contains(playWord.Word))
                 {
                     if(isPlayer1)
@@ -218,10 +251,6 @@ namespace Boggle
                     }
                     switch (playWord.Word.Length)
                     {
-                        case 1: score.Score = 0;
-                            break;
-                        case 2: score.Score = 0;
-                            break;
                         case 3: score.Score = 1;
                             break;
                         case 4: score.Score = 1;
