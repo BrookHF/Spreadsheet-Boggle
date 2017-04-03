@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{224034C0-785A-4229-9575-97F4C8935AAE}"
+	ProjectSection(SolutionItems) = preProject
+		dictionary.txt = dictionary.txt
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerGrader", "ServerGrader\ServerGrader.csproj", "{BB5EC1B9-2AA7-4AF6-B745-DD9356D2B7E0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BB5EC1B9-2AA7-4AF6-B745-DD9356D2B7E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB5EC1B9-2AA7-4AF6-B745-DD9356D2B7E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB5EC1B9-2AA7-4AF6-B745-DD9356D2B7E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB5EC1B9-2AA7-4AF6-B745-DD9356D2B7E0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
