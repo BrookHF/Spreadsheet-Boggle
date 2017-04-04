@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data;
 using System.Data.SqlClient;
 using System.Dynamic;
 using System.IO;
@@ -65,45 +66,12 @@ namespace Boggle
             BoggleDB = ConfigurationManager.ConnectionStrings["BoggleDB"].ConnectionString;
         }
 
+
         /// <summary>
         /// Handles a call to the server to create a new user based on the nickname passed in.
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
-        //public Token CreateUser(User user)
-        //{
-        //    lock (sync)
-        //    {
-        //        //For the first launch of the server, populate the dictionary
-        //        if (dictionary.Count == 0)
-        //        {
-        //            FillDictionary();
-        //        }
-
-        //        if (user.Nickname == null)
-        //        {
-        //            SetStatus(Forbidden);
-        //            return null;
-        //        }
-
-        //        user.Nickname = user.Nickname.Trim();
-
-        //        //Checks to make sure a non-empty nickname was provided
-        //        if (user.Nickname.Equals(""))
-        //        {
-        //            SetStatus(Forbidden);
-        //            return null;
-        //        }
-
-        //        Token token = new Token();
-        //        token.UserToken = Guid.NewGuid().ToString(); //Generates new token for user
-
-        //        users.Add(token.UserToken, user); //Stores nickname + token in dictionary.
-        //        SetStatus(Created);
-        //        return token;  
-        //    }
-        //}
-
         public Token CreateUser(User user)
         {
             lock(sync)
@@ -234,7 +202,7 @@ namespace Boggle
                             {
                                 // In this we don't actually need to read any data; we only need
                                 // to know whether a row was returned.
-                                if (reader["UserToken"] == null)
+                                if (!reader.HasRows)
                                 {
                                     SetStatus(Forbidden);
                                     return null;
@@ -250,67 +218,92 @@ namespace Boggle
                         using (SqlCommand command = new SqlCommand("select GameState, GameID, TimeLimit, Player1 from Games where GameState = @GameState", conn, trans))
                         {
                             command.Parameters.AddWithValue("@GameState", "pending");
+                            bool hasRows;
+                            string tempPlayer1 = "";
+                            int tempTimeLimit = 0;
+                            int tempGameID = 0;
 
                             // This executes a query (i.e. a select statement).  The result is an
                             // SqlDataReader that you can use to iterate through the rows in the response.
                             using (SqlDataReader reader = command.ExecuteReader())
                             {
-                                //There is not a pending game
-                                if (!reader.HasRows)
+                                hasRows = reader.HasRows;
+                                if (hasRows)
                                 {
-
-                                    using (SqlCommand insertCommand = new SqlCommand("insert into Games (Player1, GameState, TimeLimit) output inserted.ItemID values(@Player1, @GameState, @TimeLimit)", conn, trans))
-                                    {
-                                        command.Parameters.AddWithValue("@Player1", game.UserToken);
-                                        command.Parameters.AddWithValue("@GameState", "pending");
-                                        command.Parameters.AddWithValue("@TimeLimit", game.TimeLimit);
-
-                                        // We execute the command with the ExecuteScalar method, which will return to
-                                        // us the requested auto-generated ItemID.
-                                        string itemID = command.ExecuteScalar().ToString();
-                                        SetStatus(Created);
-                                        trans.Commit();
-                                        ID returnID = new ID();
-                                        returnID.GameID = GameIDCount.ToString();
-                                        return returnID;
-                                    }
+                                    reader.Read();
+                                    tempPlayer1 = (string)reader["Player1"];
+                                    tempTimeLimit = (int)reader["TimeLimit"];
+                                    tempGameID = (int)reader["GameID"];
                                 }
-                                //There is a pending game
+                            }
 
-                                else {
-                                    //makes sure player doesnt play against themself
-                                    if(reader["Player1"].ToString() == game.UserToken)
-                                    {
-                                        SetStatus(Conflict);
-                                        return null;
-                                    }
+                            //There is not a pending game
 
-                                    using (SqlCommand updateCommand = new SqlCommand("UPDATE Games SET player2 = @Player2, GameState = @GameState, Board = @Board, TimeLimit = @TimeLimit, StartTime = @StartTime", conn, trans))
-                                    {
-                                        command.Parameters.AddWithValue("@Player2", game.UserToken);
-                                        command.Parameters.AddWithValue("@GameState", "active");
-                                        command.Parameters.AddWithValue("@TimeLimit", (game.TimeLimit + (int)reader["TimeLimit"]) / 2);
-                                        BoggleBoard board = new BoggleBoard();
-                                        command.Parameters.AddWithValue("@Board", board.ToString());
-                                        command.Parameters.AddWithValue("@StartTime", DateTime.Now);
+                            //There is a pending game
 
-                                        // We execute the command with the ExecuteScalar method, which will return to
-                                        // us the requested auto-generated ItemID.
-                                        string itemID = command.ExecuteScalar().ToString();
-                                        SetStatus(Created);
-                                        trans.Commit();
-                                        ID returnID = new ID();
-                                        returnID.GameID = reader["GameID"].ToString();
-                                        return returnID;
-                                    }
+                            if (hasRows)
+                            {
+                                //makes sure player doesnt play against themself
+                                if (tempPlayer1 == game.UserToken)
+                                {
+                                    SetStatus(Conflict);
+                                    return null;
                                 }
+
+                                using (SqlCommand updateCommand = new SqlCommand("UPDATE Games SET player2 = @Player2, GameState = @GameState, Board = @Board, TimeLimit = @TimeLimit, StartTime = @StartTime", conn, trans))
+                                {
+                                    updateCommand.Parameters.AddWithValue("@Player2", game.UserToken);
+                                    updateCommand.Parameters.AddWithValue("@GameState", "active");
+                                    updateCommand.Parameters.AddWithValue("@TimeLimit", (game.TimeLimit + tempTimeLimit) / 2);
+                                    BoggleBoard board = new BoggleBoard();
+                                    updateCommand.Parameters.AddWithValue("@Board", board.ToString());
+                                    updateCommand.Parameters.AddWithValue("@StartTime", DateTime.Now);
+
+                                    // We execute the command with the ExecuteScalar method, which will return to
+                                    // us the requested auto-generated ItemID.
+                                    updateCommand.ExecuteNonQuery();
+                                    SetStatus(Created);
+                                    trans.Commit();
+                                    ID returnID = new ID();
+                                    returnID.GameID = tempGameID.ToString();
+                                    return returnID;
+                                }
+                            }
+
+
+                            using (SqlCommand insertCommand = new SqlCommand("insert into Games (Player1, GameState, TimeLimit) output inserted.GameID values(@Player1, @GameState, @TimeLimit)", conn, trans))
+                            {
+                                insertCommand.Parameters.AddWithValue("@Player1", game.UserToken);
+                                insertCommand.Parameters.AddWithValue("@GameState", "pending");
+                                insertCommand.Parameters.AddWithValue("@TimeLimit", game.TimeLimit);
+
+                                // We execute the command with the ExecuteScalar method, which will return to
+                                // us the requested auto-generated ItemID.
+                                insertCommand.ExecuteNonQuery();
+                                SetStatus(Accepted);
+                                trans.Commit();
+
+                            }
+                            using (SqlCommand selectCommand = new SqlCommand("select GameID from Games where GameState = @GameState", conn, trans))
+                            {
+                                selectCommand.Parameters.AddWithValue("@GameState", "pending");
+
+                                // This executes a query (i.e. a select statement).  The result is an
+                                // SqlDataReader that you can use to iterate through the rows in the response.
+                                using (SqlDataReader reader = command.ExecuteReader())
+                                {
+                                    reader.Read();
+                                    ID returnID = new ID();
+                                    returnID.GameID = reader["GameID"].ToString();
+                                    return returnID;
+                                }
+
                             }
                         }
                     }
                 }
             }
-
-            }
+        }
         
 
         /// <summary>
@@ -321,14 +314,40 @@ namespace Boggle
         {
             lock (sync)
             {
-                if(CurrGame == null || !users.ContainsKey(token.UserToken) || CurrGame.Player1.UserToken != token.UserToken)
+                using (SqlConnection conn = new SqlConnection(BoggleDB))
                 {
-                    SetStatus(Forbidden);
-                    return;
+                    conn.Open();
+                    using (SqlTransaction trans = conn.BeginTransaction())
+                    {
+
+                        using (SqlCommand command = new SqlCommand("select Player1 from Games where GameState = @GameState", conn, trans))
+                        {
+                            command.Parameters.AddWithValue("@GameState", "pending");
+
+                            // This executes a query (i.e. a select statement).  The result is an
+                            // SqlDataReader that you can use to iterate through the rows in the response.
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
+
+                                if (!reader.Read() || (string)reader["Player1"] != token.UserToken)
+                                {
+                                    SetStatus(Forbidden);
+                                    return;
+                                }
+
+                            }
+                            using (SqlCommand deleteCommand = new SqlCommand("delete from Games where GameState = @GameState", conn, trans))
+                            {
+                                deleteCommand.Parameters.AddWithValue("@GameState", "pending");
+                                deleteCommand.ExecuteNonQuery();
+                                SetStatus(OK);
+                                trans.Commit();
+                                return;
+                            }
+                        }
+                    }
                 }
-                //if there is a game with 1 player in it, and the player in it matches the player's token passed in, then sets the game to null.
-                CurrGame = null;
-                SetStatus(OK);
+                
             }
         }
 
@@ -342,128 +361,156 @@ namespace Boggle
         {
             lock (sync)
             {
-                playWord.Word = playWord.Word.Trim();
-                playWord.Word = playWord.Word.ToUpper();
-
-                GameStatusReturn r = GetGameStatus("yes", GameID);
-
-
-                if (playWord.Word == null || playWord.Word.Equals("") || playWord.UserToken == null || playWord.UserToken.Equals(""))
+                using (SqlConnection conn = new SqlConnection(BoggleDB))
                 {
-                    SetStatus(Forbidden);
-                    return null;
-                }
-                GameStatus status;
-                if(!gameStatus.TryGetValue(GameID, out status))
-                {
-                    if (GameIDCount.ToString() == GameID) {
-                        SetStatus(Conflict);
-                        return null;
-                    }
-                    SetStatus(Forbidden);
-                    return null;
-                }
-                else if((!status.Player1.UserToken.Equals(playWord.UserToken)  && !status.Player2.UserToken.Equals(playWord.UserToken)))
-                {
-                    SetStatus(Forbidden);
-                    return null;
-                }
-                if (!status.GameState.Equals("active"))
-                {
-                    SetStatus(Conflict);
-                    return null;
-                }
-                SetStatus(OK);
-                WordPlayed wordPlayed = new WordPlayed();
-                ScoreChange score = new ScoreChange();
-                wordPlayed.Word = playWord.Word;
-                bool isPlayer1 = status.Player1.UserToken.Equals(playWord.UserToken);
-                if (playWord.Word.Length <= 2)
-                {
-                    if (isPlayer1)
+                    conn.Open();
+                    using (SqlTransaction trans = conn.BeginTransaction())
                     {
-                        wordPlayed.Score = 0;
-                        status.Player1.WordsList.Add(wordPlayed);
-                        score.Score = 0;
+                        playWord.Word = playWord.Word.Trim();
+                        playWord.Word = playWord.Word.ToUpper();
+
+                        GameStatusReturn r = GetGameStatus("yes", GameID);
+
+                        if (playWord.Word == null || playWord.Word.Equals("") || playWord.UserToken == null || playWord.UserToken.Equals(""))
+                        {
+                            SetStatus(Forbidden);
+                            return null;
+                        }
+
+                        //Checks if usertoken is in our database
+                        using (SqlCommand command = new SqlCommand("select Nickname from Users where UserToken = @UserToken", conn, trans))
+                        {
+                            command.Parameters.AddWithValue("@UserToken", playWord.UserToken);
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
+                                if (!reader.HasRows)
+                                {
+                                    SetStatus(Forbidden);
+                                    return null;
+                                }
+                            }
+                        }
+                        string tempPlayer1 = "";
+                        string tempPlayer2 = "";
+                        BoggleBoard tempBoard;
+                        //Need gamestate, board, player1, player2, needs to match gameID
+                        using (SqlCommand command = new SqlCommand("select Player1, Player2, GameState, Board from Games where GameID = @GameID", conn, trans))
+                        {
+                            command.Parameters.AddWithValue("@GameID", GameID);
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
+                                if(!reader.HasRows)
+                                {
+                                    SetStatus(Forbidden);
+                                    return null;
+                                }
+                                if(reader["GameState"].ToString() != "active")
+                                {
+                                    SetStatus(Conflict);
+                                    return null;
+                                }
+                                if (!reader["Player1"].Equals(playWord.UserToken) && !reader["Player2"].Equals(playWord.UserToken))
+                                {
+                                    SetStatus(Forbidden);
+                                    return null;
+                                }
+                                tempPlayer1 = reader["Player1"].ToString();
+                                tempPlayer2 = reader["Player2"].ToString();
+                                tempBoard = new BoggleBoard(reader["Board"].ToString());
+                            }
+                        }
+                        
+                        SetStatus(OK);
+                        WordPlayed wordPlayed = new WordPlayed();
+                        ScoreChange score = new ScoreChange();
+                        wordPlayed.Word = playWord.Word;
+                        bool isPlayer1 = tempPlayer1.Equals(playWord.UserToken);
+                        if (playWord.Word.Length <= 2)
+                        {
+                            if (isPlayer1)
+                            {
+                                wordPlayed.Score = 0;
+                                score.Score = 0;                              
+                            }
+                            else
+                            {
+                                wordPlayed.Score = 0;                              
+                                score.Score = 0;                              
+                            }
+                        }
+                        else if (tempBoard.CanBeFormed(playWord.Word) && dictionary.Contains(playWord.Word))
+                        {
+                            switch (playWord.Word.Length)
+                            {
+                                case 3:
+                                    score.Score = 1;
+                                    break;
+                                case 4:
+                                    score.Score = 1;
+                                    break;
+                                case 5:
+                                    score.Score = 2;
+                                    break;
+                                case 6:
+                                    score.Score = 3;
+                                    break;
+                                case 7:
+                                    score.Score = 5;
+                                    break;
+                                default:
+                                    score.Score = 11;
+                                    break;
+                            }
+
+                            using (SqlCommand command = new SqlCommand("select Word from Words where GameID = @GameID and UserToken = @UserToken and Word = @Word", conn, trans))
+                            {
+                                command.Parameters.AddWithValue("@GameID", GameID);
+                                command.Parameters.AddWithValue("@Word", playWord.Word);
+                                if (isPlayer1)
+                                {
+                                    command.Parameters.AddWithValue("@UserToken", tempPlayer1);
+                                }
+                                else
+                                {
+                                    command.Parameters.AddWithValue("@UserToken", tempPlayer2);
+                                }
+                                using (SqlDataReader reader = command.ExecuteReader())
+                                {
+                                    if(reader.HasRows)
+                                    {
+                                        score.Score = 0;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            score.Score = -1;
+                        }
+                        //update DB, return score
+                        using (SqlCommand insertCommand = new SqlCommand("insert into Words (Word, GameID, UserToken, Score) values(@Word, @GameID, @UserTOken, @Score)", conn, trans))
+                        {
+                            insertCommand.Parameters.AddWithValue("@Word", playWord.Word);
+                            insertCommand.Parameters.AddWithValue("@GameID", GameID);
+                            if(isPlayer1)
+                            {
+                                insertCommand.Parameters.AddWithValue("@UserToken", tempPlayer1);
+                            }
+                            else
+                            {
+                                insertCommand.Parameters.AddWithValue("@UserToken", tempPlayer2);
+                            }
+                            insertCommand.Parameters.AddWithValue("@Score", score.Score);
+
+                            // We execute the command with the ExecuteScalar method, which will return to
+                            // us the requested auto-generated ItemID.
+                            insertCommand.ExecuteNonQuery();
+                            trans.Commit();
+                        }
                         return score;
                     }
-                    else
-                    {
-                        wordPlayed.Score = 0;
-                        status.Player2.WordsList.Add(wordPlayed);
-                        score.Score = 0;
-                        return score;
-                    }
                 }
-                if (status.Board.CanBeFormed(playWord.Word) && dictionary.Contains(playWord.Word))
-                {
-                    if(isPlayer1)
-                    {
-                        if (!status.Player1.WordsPlayed.Add(playWord.Word))
-                        {
-                            wordPlayed.Score = 0;
-                            status.Player1.WordsList.Add(wordPlayed);
-                            score.Score = 0;
-                            return score;
-                        }
-                    }
-                    else
-                    {
-                        if (!status.Player2.WordsPlayed.Add(playWord.Word))
-                        {
-                            wordPlayed.Score = 0;
-                            status.Player2.WordsList.Add(wordPlayed);
-                            score.Score = 0;
-                            return score;
-                        }
-                    }
-                    switch (playWord.Word.Length)
-                    {
-                        case 3: score.Score = 1;
-                            break;
-                        case 4: score.Score = 1;
-                            break;
-                        case 5: score.Score = 2;
-                            break;
-                        case 6: score.Score = 3;
-                            break;
-                        case 7: score.Score = 5;
-                            break;
-                        default: score.Score = 11;
-                            break;
-
-                    }
-                    wordPlayed.Score = score.Score;
-                    if(isPlayer1)
-                    {
-                        status.Player1.Score += score.Score;
-                        status.Player1.WordsList.Add(wordPlayed);
-                    }
-                    else
-                    {
-                        status.Player2.Score += score.Score;
-                        status.Player2.WordsList.Add(wordPlayed);
-                    }                 
-                    return score;
-                }
-                else
-                {
-                    
-                    score.Score = -1;
-                    wordPlayed.Score = score.Score;
-                    if (isPlayer1)
-                    {
-                        status.Player1.Score += score.Score;
-                        status.Player1.WordsList.Add(wordPlayed);
-                    }
-                    else
-                    {
-                        status.Player2.Score += score.Score;
-                        status.Player2.WordsList.Add(wordPlayed);
-                    }
-                    return score;
-                }
-            }     
+            }   
         }
 
         /// <summary>
@@ -478,99 +525,208 @@ namespace Boggle
         /// <returns></returns>
         public GameStatusReturn GetGameStatus(string brief, string GameID)
         {
-            //if gameID is invalid, respond with 403 forbidden
-            GameStatus status;
-            GameStatusReturn gameStatusReturn = new GameStatusReturn();
-            if (!gameStatus.ContainsKey(GameID)&& !GameIDCount.ToString().Equals(GameID))
+            lock (sync)
             {
-                SetStatus(Forbidden);
-                return null;
-            }
-            
-            if (!gameStatus.TryGetValue(GameID, out status))
-            {
-                status = CurrGame;
-            }
-            if(status.GameState != "pending")
-            {
-                status.TimeLeft = status.TimeLimit - (int)(DateTime.Now - status.startTime).TotalSeconds;
-                if (status.TimeLeft <= 0)
+                using (SqlConnection conn = new SqlConnection(BoggleDB))
                 {
-                    status.GameState = "completed";
-                    status.TimeLeft = 0;
+                    conn.Open();
+                    using (SqlTransaction trans = conn.BeginTransaction())
+                    {
+                        string tempGameState = "";
+                        int tempGameID = 0;
+                        string tempBoard = "";
+                        int tempTimeLeft = 0;
+                        DateTime tempStartTime = new DateTime();
+                        int tempTimeLimit = 0;
+                        string tempPlayer1 = "";
+                        string tempPlayer2 = "";
+                        dynamic tempPlayer1Info = new ExpandoObject();
+                        dynamic tempPlayer2Info = new ExpandoObject();
+                        tempPlayer1Info.Nickname = "";
+                        tempPlayer1Info.Score = 0;
+                        tempPlayer1Info.WordsList = new List<WordPlayed>();
+                        tempPlayer2Info.Nickname = "";
+                        tempPlayer2Info.Score = 0;
+                        tempPlayer2Info.WordsList = new List<WordPlayed>();
+
+                        //update info from games
+                        using (SqlCommand command = new SqlCommand("select * from Games where GameID = @GameID", conn, trans))
+                        {
+                            command.Parameters.AddWithValue("@GameID", GameID);
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
+                                if (reader.Read())
+                                {
+                                    tempGameState = (string)reader["GameState"];
+                                    if (tempGameState == "pending") //Response if pending
+                                    {
+                                        GameStatusReturn gameStatusReturnPending = new GameStatusReturn();
+                                        gameStatusReturnPending.GameState = "pending";
+                                        return gameStatusReturnPending;
+                                    }
+                                    tempGameID = (int)reader["GameID"];
+                                    tempPlayer1 = (string)reader["Player1"];
+                                    tempPlayer2 = (string)reader["Player2"];
+                                    tempBoard = (string)reader["Board"];
+                                    tempStartTime = (DateTime)reader["StartTime"];
+                                    tempTimeLimit = (int)reader["TimeLimit"];
+                                }
+                                else
+                                {
+                                    SetStatus(Forbidden);
+                                    return null;
+                                }
+                            }
+                        }
+
+                        //update info from Words
+                        using (SqlCommand command = new SqlCommand("select * from Words where GameID = @GameID", conn, trans))
+                        {
+                            command.Parameters.AddWithValue("@GameID", GameID);
+                            
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
+                                tempPlayer1Info.WordsList = new List<WordPlayed>();
+                                tempPlayer2Info.WordsList = new List<WordPlayed>();
+                                while (reader.Read())
+                                {
+                                    if(reader["UserToken"].ToString() == tempPlayer1)
+                                    {
+                                        tempPlayer1Info.Score += reader["Score"];
+                                        WordPlayed wordPlayed = new WordPlayed();
+                                        wordPlayed.Word = (string)reader["Word"];
+                                        wordPlayed.Score = (int)reader["Score"];
+                                        tempPlayer1Info.WordsList.Add(wordPlayed);
+                                    }
+                                    else
+                                    {
+                                        tempPlayer2Info.Score += reader["Score"];
+                                        WordPlayed wordPlayed = new WordPlayed();
+                                        wordPlayed.Word = (string)reader["Word"];
+                                        wordPlayed.Score = (int)reader["Score"];
+                                        tempPlayer2Info.WordsList.Add(wordPlayed);
+                                    }
+                                }
+                            }
+                        }
+
+                        //Get nickname from Users for player 2 
+                        using (SqlCommand command = new SqlCommand("select * from Users where UserToken = @UserToken", conn, trans))
+                        {
+                            command.Parameters.AddWithValue("@UserToken", tempPlayer1);
+
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
+                                reader.Read();
+                                tempPlayer1Info.Nickname = reader["Nickname"];
+                            }
+                        }
+
+                        //Get nickname from Users for player 2
+                        using (SqlCommand command = new SqlCommand("select * from Users where UserToken = @UserToken", conn, trans))
+                        {
+                            command.Parameters.AddWithValue("@UserToken", tempPlayer2);
+
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
+                                reader.Read();
+                                tempPlayer2Info.Nickname = reader["Nickname"];
+                            }
+                        }
+
+                        GameStatusReturn gameStatusReturn = new GameStatusReturn();
+                        
+
+                        if (tempGameState != "pending")
+                        {
+                            tempTimeLeft = tempTimeLimit - (int)(DateTime.Now - tempStartTime).TotalSeconds;
+                            if (tempTimeLeft <= 0)
+                            {
+                                tempGameState = "completed";
+                                tempTimeLeft = 0;
+                            }
+                        }
+
+                        //Need to update DB for gamestate and timeleft
+                        using (SqlCommand updateCommand = new SqlCommand("UPDATE Games SET GameState = @GameState", conn, trans))
+                        {
+                            
+                            updateCommand.Parameters.AddWithValue("@GameState", tempGameState);
+
+                            // We execute the command with the ExecuteScalar method, which will return to
+                            // us the requested auto-generated ItemID.
+                            updateCommand.ExecuteNonQuery();
+                            trans.Commit();
+                        }
+
+                        
+                        if (tempGameState == "active") //Response if active
+                        {
+                            if (brief == "yes") //Active + brief = yes
+                            {
+                                gameStatusReturn.GameState = tempGameState;
+                                gameStatusReturn.TimeLeft = tempTimeLeft;
+                                gameStatusReturn.Player1 = new PlayerReturn();
+                                gameStatusReturn.Player2 = new PlayerReturn();
+                                gameStatusReturn.Player1.Score = tempPlayer1Info.Score;
+                                gameStatusReturn.Player2.Score = tempPlayer2Info.Score;
+                            }
+                            else //Active without brief = yes
+                            {
+                                gameStatusReturn.GameState = tempGameState;
+                                gameStatusReturn.Board = tempBoard;
+                                gameStatusReturn.TimeLimit = tempTimeLimit;
+                                gameStatusReturn.TimeLeft = tempTimeLeft;
+                                PlayerReturn Player1 = new PlayerReturn();
+                                Player1.Nickname = tempPlayer1Info.Nickname;
+                                Player1.Score = tempPlayer1Info.Score;
+                                Player1.WordsPlayed = tempPlayer1Info.WordsList;
+
+                                PlayerReturn Player2 = new PlayerReturn();
+                                Player2.Nickname = tempPlayer2Info.Nickname;
+                                Player2.Score = tempPlayer2Info.Score;
+                                Player2.WordsPlayed = tempPlayer2Info.WordsList;
+
+                                gameStatusReturn.Player1 = Player1;
+                                gameStatusReturn.Player2 = Player2;
+
+                            }
+                        }
+                        else //Completed
+                        {
+                            if (brief == "yes") //Completed + brief = yes
+                            {
+                                gameStatusReturn.GameState = "completed";
+                                gameStatusReturn.TimeLeft = 0;
+                                gameStatusReturn.Player1 = new PlayerReturn();
+                                gameStatusReturn.Player2 = new PlayerReturn();
+                                gameStatusReturn.Player1.Score = tempPlayer1Info.Score;
+                                gameStatusReturn.Player2.Score = tempPlayer2Info.Score;
+                            }
+                            else //Completed and no brief=yes
+                            {
+                                gameStatusReturn.GameState = tempGameState;
+                                gameStatusReturn.Board = tempBoard;
+                                gameStatusReturn.TimeLimit = tempTimeLimit;
+                                gameStatusReturn.TimeLeft = tempTimeLeft;
+                                PlayerReturn Player1 = new PlayerReturn();
+                                Player1.Nickname = tempPlayer1Info.Nickname;
+                                Player1.Score = tempPlayer1Info.Score;
+                                Player1.WordsPlayed = tempPlayer1Info.WordsList;
+
+                                PlayerReturn Player2 = new PlayerReturn();
+                                Player2.Nickname = tempPlayer2Info.Nickname;
+                                Player2.Score = tempPlayer2Info.Score;
+                                Player2.WordsPlayed = tempPlayer2Info.WordsList;
+
+                                gameStatusReturn.Player1 = Player1;
+                                gameStatusReturn.Player2 = Player2;
+                            }
+                        }
+                        return gameStatusReturn;
+                    }
                 }
             }
-            
-            if (status.GameState == "pending") //Response if pending
-            {
-                gameStatusReturn.GameState = "pending";
-                return gameStatusReturn;
-            }
-            else if (status.GameState == "active") //Response if active
-            {
-                if (brief == "yes") //Active + brief = yes
-                {
-                    gameStatusReturn.GameState = status.GameState;
-                    gameStatusReturn.TimeLeft = status.TimeLeft;
-                    gameStatusReturn.Player1 = new PlayerReturn();
-                    gameStatusReturn.Player2 = new PlayerReturn();
-                    gameStatusReturn.Player1.Score = status.Player1.Score;
-                    gameStatusReturn.Player2.Score = status.Player2.Score;
-                }
-                else //Active without brief = yes
-                {
-                    gameStatusReturn.GameState = status.GameState;
-                    gameStatusReturn.Board = status.Board.ToString();
-                    gameStatusReturn.TimeLimit = status.TimeLimit;
-                    gameStatusReturn.TimeLeft = status.TimeLeft;
-                    PlayerReturn Player1 = new PlayerReturn();
-                    Player1.Nickname = status.Player1.Nickname;
-                    Player1.Score = status.Player1.Score;
-                    Player1.WordsPlayed = status.Player1.WordsList;
-
-                    PlayerReturn Player2 = new PlayerReturn();
-                    Player2.Nickname = status.Player2.Nickname;
-                    Player2.Score = status.Player2.Score;
-                    Player2.WordsPlayed = status.Player2.WordsList;
-
-                    gameStatusReturn.Player1 = Player1;
-                    gameStatusReturn.Player2 = Player2;
-
-                }
-            }
-            else //Completed
-            {
-                if (brief == "yes") //Completed + brief = yes
-                {
-                    gameStatusReturn.GameState = "completed";
-                    gameStatusReturn.TimeLeft = 0;
-                    gameStatusReturn.Player1 = new PlayerReturn();
-                    gameStatusReturn.Player2 = new PlayerReturn();
-                    gameStatusReturn.Player1.Score = status.Player1.Score;
-                    gameStatusReturn.Player2.Score = status.Player2.Score;
-                }
-                else //Completed and no brief=yes
-                {
-                    gameStatusReturn.GameState = status.GameState;
-                    gameStatusReturn.Board = status.Board.ToString();
-                    gameStatusReturn.TimeLimit = status.TimeLimit;
-                    gameStatusReturn.TimeLeft = status.TimeLeft;
-                    PlayerReturn Player1 = new PlayerReturn();
-                    Player1.Nickname = status.Player1.Nickname;
-                    Player1.Score = status.Player1.Score;
-                    Player1.WordsPlayed = status.Player1.WordsList;
-
-                    PlayerReturn Player2 = new PlayerReturn();
-                    Player2.Nickname = status.Player2.Nickname;
-                    Player2.Score = status.Player2.Score;
-                    Player2.WordsPlayed = status.Player2.WordsList;
-
-                    gameStatusReturn.Player1 = Player1;
-                    gameStatusReturn.Player2 = Player2;
-                }
-            }
-            return gameStatusReturn;
-
         }
 
         
