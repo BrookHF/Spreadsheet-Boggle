@@ -42,24 +42,6 @@ namespace Boggle
 
         static BoggleService()
         {
-            // Saves the connection string for the database.  A connection string contains the
-            // information necessary to connect with the database server.  When you create a
-            // DB, there is generally a way to obtain the connection string.  From the Server
-            // Explorer pane, obtain the properties of DB to see the connection string.
-
-            // The connection string of my ToDoDB.mdf shows as
-            //
-            //    Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename="C:\Users\zachary\Source\CS 3500 S16\examples\ToDoList\ToDoListDB\App_Data\ToDoDB.mdf";Integrated Security=True
-            //
-            // Unfortunately, this is absolute pathname on my computer, which means that it
-            // won't work if the solution is moved.  Fortunately, it can be shorted to
-            //
-            //    Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename="|DataDirectory|\ToDoDB.mdf";Integrated Security=True
-            //
-            // You should shorten yours this way as well.
-            //
-            // Rather than build the connection string into the program, I store it in the Web.config
-            // file where it can be easily found and changed.  You should do that too.
             BoggleDB = ConfigurationManager.ConnectionStrings["BoggleDB"].ConnectionString;
         }
 
@@ -80,9 +62,7 @@ namespace Boggle
                 {
                     FillDictionary();
                 }
-
-                // This validates the user.Name property.  It is best to do any work that doesn't
-                // involve the database before creating the DB connection or after closing it.
+                
                 if (user.Nickname == null || user.Nickname.Trim().Length == 0 || user.Nickname.Trim().Length > 50)
                 {
                     SetStatus(Forbidden);
@@ -107,20 +87,15 @@ namespace Boggle
                             // We generate the userID to use.
                             string UserToken = Guid.NewGuid().ToString();
 
-                            // This is where the placeholders are replaced.
+                            
                             command.Parameters.AddWithValue("@UserToken", UserToken);
                             command.Parameters.AddWithValue("@Nickname", user.Nickname.Trim());
 
                             token.UserToken = UserToken;
-                            // This executes the command within the transaction over the connection.  The number of rows
-                            // that were modified is returned.  Perhaps I should check and make sure that 1 is returned
-                            // as expected.
+                            
                             command.ExecuteNonQuery();
                             SetStatus(Created);
 
-                            // Immediately before each return that appears within the scope of a transaction, it is
-                            // important to commit the transaction.  Otherwise, the transaction will be aborted and
-                            // rolled back as soon as control leaves the scope of the transaction. 
                             trans.Commit();
                             return token;
                         }
@@ -150,24 +125,22 @@ namespace Boggle
                     using (SqlTransaction trans = conn.BeginTransaction())
                     {
 
-                        // Here, the SqlCommand is a select query.  We are interested in whether item.UserID exists in
-                        // the Users table.
+                        
                         using (SqlCommand command = new SqlCommand("select UserToken from Users where UserToken = @UserToken", conn, trans))
                         {
                             command.Parameters.AddWithValue("@UserToken", game.UserToken);
 
-                            // This executes a query (i.e. a select statement).  The result is an
-                            // SqlDataReader that you can use to iterate through the rows in the response.
+                            //if there are no rows with usertoken then user is not registered yet
                             using (SqlDataReader reader = command.ExecuteReader())
                             {
-                                // In this we don't actually need to read any data; we only need
-                                // to know whether a row was returned.
+                                
                                 if (!reader.HasRows)
                                 {
                                     SetStatus(Forbidden);
                                     return null;
                                 }
                             }
+                            //if they enter an invalid timelimit 
                             if (game.TimeLimit < 5 || game.TimeLimit > 120)
                             {
                                 SetStatus(Forbidden);
@@ -183,8 +156,6 @@ namespace Boggle
                             int tempTimeLimit = 0;
                             int tempGameID = 0;
 
-                            // This executes a query (i.e. a select statement).  The result is an
-                            // SqlDataReader that you can use to iterate through the rows in the response.
                             using (SqlDataReader reader = command.ExecuteReader())
                             {
                                 hasRows = reader.HasRows;
@@ -214,9 +185,7 @@ namespace Boggle
                                     BoggleBoard board = new BoggleBoard();
                                     updateCommand.Parameters.AddWithValue("@Board", board.ToString());
                                     updateCommand.Parameters.AddWithValue("@StartTime", DateTime.Now);
-
-                                    // We execute the command with the ExecuteScalar method, which will return to
-                                    // us the requested auto-generated ItemID.
+                                    
                                     updateCommand.ExecuteNonQuery();
                                     SetStatus(Created);
                                     trans.Commit();
@@ -232,9 +201,7 @@ namespace Boggle
                                 insertCommand.Parameters.AddWithValue("@Player1", game.UserToken);
                                 insertCommand.Parameters.AddWithValue("@GameState", "pending");
                                 insertCommand.Parameters.AddWithValue("@TimeLimit", game.TimeLimit);
-
-                                // We execute the command with the ExecuteScalar method, which will return to
-                                // us the requested auto-generated ItemID.
+                                
                                 insertCommand.ExecuteNonQuery();
                                 SetStatus(Accepted);
                                 trans.Commit();
@@ -405,6 +372,7 @@ namespace Boggle
                                     break;
                             }
 
+                            //if duplicate word then score is 0
                             using (SqlCommand command = new SqlCommand("select Word from Words where GameID = @GameID and UserToken = @UserToken and Word = @Word", conn, trans))
                             {
                                 command.Parameters.AddWithValue("@GameID", GameID);
@@ -577,6 +545,7 @@ namespace Boggle
 
                         GameStatusReturn gameStatusReturn = new GameStatusReturn();                       
 
+                        //update time left if game is active
                         if (tempGameState == "active")
                         {
                             tempTimeLeft = tempTimeLimit - (int)(DateTime.Now - tempStartTime).TotalSeconds;
@@ -584,6 +553,7 @@ namespace Boggle
                             {
                                 tempGameState = "completed";
                                 tempTimeLeft = 0;
+                                //Need to update DB for gamestate
                                 using (SqlCommand updateCommand = new SqlCommand("UPDATE Games SET GameState = @GameState", conn, trans))
                                 {
                                     updateCommand.Parameters.AddWithValue("@GameState", "completed");
@@ -593,7 +563,7 @@ namespace Boggle
                             }
                         }
 
-                        //Need to update DB for gamestate and timeleft
+                       
                         
 
                         
