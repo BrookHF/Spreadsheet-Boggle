@@ -1140,7 +1140,7 @@ namespace ServerGrader
             string game = SimulateGame(out p1Words, out p2Words, resetEvent);
             string board = GetStatus(game, "no").Result.Board;
             List<dynamic> wordscores1 = new List<dynamic>(GetStatus(game, "no").Result.Player1.WordsPlayed);
-            List<dynamic> wordscores2 = new List<dynamic>(GetStatus(game, "no").Result.Player2.WordsPlayed);
+            List<dynamic> wordscores2 = new List<dynamic>(GetStatus(game, "no").Result.Player2.WordsPlayed);           
             wordscores1.Sort((x, y) => x.Word.CompareTo(y.Word));
             wordscores1.Sort((x, y) => x.Word.CompareTo(y.Word));
             p1Words.Sort();
