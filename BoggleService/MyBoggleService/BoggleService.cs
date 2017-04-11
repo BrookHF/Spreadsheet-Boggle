@@ -6,6 +6,7 @@ using System.Data.SqlClient;
 using System.Dynamic;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
 using System.Timers;
 using System.Windows;
 using static System.Net.HttpStatusCode;
@@ -15,7 +16,7 @@ namespace Boggle
     public class BoggleService
     {
         private static string BoggleDB;
-        private static HttpStatusCode status;
+        
         private static readonly object sync = new object();
         private readonly static HashSet<String> dictionary = new HashSet<string>();
 

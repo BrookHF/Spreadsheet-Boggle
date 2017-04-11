@@ -2,6 +2,7 @@
 using System.Text;
 using System.Net;
 using System.Net.Sockets;
+using Newtonsoft.Json;
 using System.Threading;
 using System.Collections.Generic;
 
@@ -27,6 +28,8 @@ namespace Chat
 
         // Read/write lock to coordinate access to the clients list
         private readonly ReaderWriterLockSlim sync = new ReaderWriterLockSlim();
+
+
 
         /// <summary>
         /// Creates a BoggleServer that listens for connection requests on port 60000.
@@ -71,27 +74,6 @@ namespace Chat
             finally
             {
                 sync.ExitWriteLock();
-            }
-        }
-
-        /// <summary>
-        /// Sends the message to all clients
-        /// </summary>
-        public void SendToAllClients(string msg)
-        {
-            // Here we use a read lock to access the clients list, which allows concurrent
-            // message sending.
-            try
-            {
-                sync.EnterReadLock();
-                foreach (ClientConnection c in clients)
-                {
-                    c.SendMessage(msg);
-                }
-            }
-            finally
-            {
-                sync.ExitReadLock();
             }
         }
 
@@ -157,6 +139,13 @@ namespace Chat
         private string name = null;
         private BoggleServer server;
 
+        private static bool isFirstLine;
+        private static bool inHeaderSection;
+
+        private static int ContentLength;
+
+        private static HttpStatusCode status;
+
         /// <summary>
         /// Creates a ClientConnection from the socket, then begins communicating with it.
         /// </summary>
@@ -167,6 +156,9 @@ namespace Chat
             socket = s;
             incoming = new StringBuilder();
             outgoing = new StringBuilder();
+            isFirstLine = true;
+            ContentLength = -1;
+            inHeaderSection = true;
 
             try
             {
@@ -204,27 +196,70 @@ namespace Chat
                 incoming.Append(incomingChars, 0, charsRead);
                 Console.WriteLine(incoming);
 
-                // Echo any complete lines, after capitalizing them
                 int lastNewline = -1;
                 int start = 0;
-                for (int i = 0; i < incoming.Length; i++)
+                string body;
+                
+                if (isFirstLine)
                 {
-                    if (incoming[i] == '\n')
+                    lastNewline = -1;
+                    start = 0;
+                    for (int i = 0; i < incoming.Length; i++)
                     {
-                        String line = incoming.ToString(start, i + 1 - start);
-                        if (name == null)
+                        if (incoming[i] == '\n')
                         {
-                            name = line.Substring(0, line.Length - 2);
-                            server.SendToAllClients("Welcome " + name + "\r\n");
+                            String line = incoming.ToString(start, i + 1 - start);
+
+                            String[] words = line.Split(' ');
+                            String type = words[0];
+                            String url = words[1];
+
+                            lastNewline = i;
+                            start = i + 1;
                         }
-                        else
+                    }
+                    incoming.Remove(0, lastNewline + 1);
+                    isFirstLine = false;
+                }
+                else if(inHeaderSection)
+                {
+                    for (int i = 0; i < incoming.Length; i++)
+                    {
+                        if (incoming[i] == '\n')
                         {
-                            server.SendToAllClients(name + "> " + line.ToUpper());
+                            String line = incoming.ToString(start, i + 1 - start);
+
+                            if (incoming[0] == '\r' && incoming[1] == '\n')
+                            {
+                                inHeaderSection = false;
+                            }
+                            else
+                            {
+                                String[] words = line.Split(' ');
+                                if (words[0] == "Content-Length:")
+                                {
+                                    int.TryParse(words[1], out ContentLength);
+                                }
+                            }
+
+                            lastNewline = i;
+                            start = i + 1;
                         }
-                        lastNewline = i;
-                        start = i + 1;
                     }
                 }
+                else //if we are in the body 
+                {
+                    if(ContentLength != -1)
+                    {
+                        if(incoming.Length == ContentLength)
+                        {
+                            body = Json
+                        }
+                    }
+                }
+                
+                
+
                 incoming.Remove(0, lastNewline + 1);
 
                 try
