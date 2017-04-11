@@ -186,9 +186,9 @@ namespace Boggle
             // Report that to the console and close our socket.
             if (bytesRead == 0)
             {
-                Console.WriteLine("Socket closed");
-                server.RemoveClient(this);
-                socket.Close();
+                //Console.WriteLine("Socket closed");
+                //server.RemoveClient(this);
+                //socket.Close();
             }
 
             // Otherwise, decode and display the incoming bytes.  Then request more bytes.
@@ -207,113 +207,107 @@ namespace Boggle
                 string body = "";
                 String url = "";
 
-                if (isFirstLine)
+                lastNewline = -1;
+                start = 0;
+                for (int i = 0; i < incoming.Length; i++)
                 {
-                    lastNewline = -1;
-                    start = 0;
-                    for (int i = 0; i < incoming.Length; i++)
+                    if (incoming[i] == '\n')
                     {
-                        if (incoming[i] == '\n')
-                        {
-                            line = incoming.ToString(start, i + 1 - start);
+                        line = incoming.ToString(start, i + 1 - start);
 
+                        String[] words = line.Split(' ');
+                        type = words[0].ToLower();
+                        url = words[1];
+
+                        lastNewline = i;
+                        incoming.Remove(0, lastNewline + 1);
+                        isFirstLine = false;
+                        break;
+                    }
+                }
+
+                for (int i = 0; i < incoming.Length; i++)
+                {
+                    if (incoming[i] == '\n')
+                    {
+                        line = incoming.ToString(0, i + 1);
+
+                        if (incoming[0] == '\r' && incoming[1] == '\n')
+                        {
+                            lastNewline = i;
+                            start = i + 1;
+                            incoming.Remove(0, lastNewline + 1);
+                            break;
+                        }
+                        else
+                        {
                             String[] words = line.Split(' ');
-                            type = words[0].ToLower();
-                            url = words[1];
-
-                            lastNewline = i;
-                            start = i + 1;
+                            if (words[0] == "content-length:")
+                            {
+                                int.TryParse(words[1], out ContentLength);
+                            }
                         }
+                        lastNewline = i;
+                        start = i + 1;
+                        incoming.Remove(0, lastNewline + 1);
+                        i = 0;
                     }
-                    incoming.Remove(0, lastNewline + 1);
-                    isFirstLine = false;
                 }
-                else if(inHeaderSection)
+
+                if (ContentLength != -1)
                 {
-                    for (int i = 0; i < incoming.Length; i++)
+                    body = incoming.ToString();
+                    dynamic output = new ExpandoObject();
+                    if (type != null)
                     {
-                        if (incoming[i] == '\n')
+                        String[] urlArray = url.Split('/');
+                        if (type == "post" && urlArray[urlArray.Length - 1] == "users") //Create User
                         {
-                            line = incoming.ToString(start, i + 1 - start);
-
-                            if (incoming[0] == '\r' && incoming[1] == '\n')
-                            {
-                                inHeaderSection = false;
-                            }
-                            else
-                            {
-                                String[] words = line.Split(' ');
-                                if (words[0] == "Content-Length:")
-                                {
-                                    int.TryParse(words[1], out ContentLength);
-                                }
-                            }
-
-                            lastNewline = i;
-                            start = i + 1;
+                            User input = new User();
+                            dynamic tempObject = JsonConvert.DeserializeObject(body);
+                            input.Nickname = tempObject.Nickname;
+                            output = boggleService.CreateUser(input, out status);
                         }
-                    }
-                }
-                else //if we are in the body 
-                {
-                    if(ContentLength != -1)
-                    {
-                        for(int i = 0; i < ContentLength; i++)
+                        if (type == "post" && urlArray[urlArray.Length - 1] == "games") //Join game
                         {
-                            body += incoming[i].ToString();
+                            Game input = new Game();
+                            dynamic tempObject = JsonConvert.DeserializeObject(body);
+                            input.UserToken = tempObject.UserToken;
+                            input.TimeLimit = tempObject.TimeLimit;
+                            output = boggleService.JoinGame(input, out status);
                         }
-                        dynamic output = new ExpandoObject();
-                        if (type != null)
+                        if (type == "get" && urlArray[urlArray.Length - 2] == "games") //Get game status
                         {
-                            String[] urlArray = url.Split('/');
-                            if (type == "post" && urlArray[urlArray.Length - 1] == "users") //Create User
+                            String[] Parameters = urlArray[urlArray.Length - 1].Split('?');
+                            if (Parameters.Length > 1 && Parameters[1] == "Brief=yes") //brief = yes
                             {
-                                User input = new User();
-                                dynamic tempObject = JsonConvert.DeserializeObject(body);
-                                input.Nickname = tempObject.Nickname;
-                                output = boggleService.CreateUser(input, out status);
+                                output = boggleService.GetGameStatus("yes", Parameters[0], out status);
                             }
-                            if (type == "post" && urlArray[urlArray.Length - 1] == "games") //Join game
+                            else //brief
                             {
-                                Game input = new Game();
-                                dynamic tempObject = JsonConvert.DeserializeObject(body);
-                                input.UserToken = tempObject.UserToken;
-                                input.TimeLimit = tempObject.TimeLimit;
-                                output = boggleService.JoinGame(input, out status);
+                                output = boggleService.GetGameStatus("no", Parameters[0], out status);
                             }
-                            if (type == "get" && urlArray[urlArray.Length - 2] == "games") //Get game status
-                            {
-                                String[] Parameters = urlArray[urlArray.Length - 1].Split('?');
-                                if (Parameters.Length > 1 && Parameters[1] == "Brief=yes") //brief = yes
-                                {
-                                    output = boggleService.GetGameStatus("yes", Parameters[0], out status);
-                                }
-                                else //brief
-                                {
-                                    output = boggleService.GetGameStatus("no", Parameters[0], out status);
-                                }
-                            }
-                            if (type == "put" && urlArray[urlArray.Length - 1] == "games") //Cancel Join Request
-                            {
-                                Token input = new Token();
-                                dynamic tempObject = JsonConvert.DeserializeObject(body);
-                                input.UserToken = tempObject.UserToken;
-                                boggleService.CancelJoin(input, out status);
-                            }
-                            if (type == "put" && urlArray[urlArray.Length - 2] == "games") //Play Word
-                            {
-                                PlayWord input = new PlayWord();
-                                dynamic tempObject = JsonConvert.DeserializeObject(body);
-                                input.UserToken = tempObject.UserToken;
-                                input.Word = tempObject.Word;
-                                output = boggleService.PlayWord(input, urlArray[urlArray.Length-1], out status);
-                            }
-                            SendMessage(formRespone(output, status));
-                        }   
+                        }
+                        if (type == "put" && urlArray[urlArray.Length - 1] == "games") //Cancel Join Request
+                        {
+                            Token input = new Token();
+                            dynamic tempObject = JsonConvert.DeserializeObject(body);
+                            input.UserToken = tempObject.UserToken;
+                            boggleService.CancelJoin(input, out status);
+                        }
+                        if (type == "put" && urlArray[urlArray.Length - 2] == "games") //Play Word
+                        {
+                            PlayWord input = new PlayWord();
+                            dynamic tempObject = JsonConvert.DeserializeObject(body);
+                            input.UserToken = tempObject.UserToken;
+                            input.Word = tempObject.Word;
+                            output = boggleService.PlayWord(input, urlArray[urlArray.Length - 1], out status);
+                        }
+                        SendMessage(formRespone(output, status));
                     }
                 }
 
-                incoming.Remove(0, lastNewline + 1);
+                incoming.Clear();
 
                 try
                 {
@@ -329,12 +323,14 @@ namespace Boggle
 
         private string formRespone(dynamic output, HttpStatusCode status)
         {
+
             StringBuilder sb = new StringBuilder();
-            sb.Append("HTTP / 1.1 " + status.GetTypeCode().ToString() +status.ToString() + "\r\n");
-            sb.Append("Content-Length: " + JsonConvert.SerializeObject(output).length + "\r\n");
+            sb.Append("HTTP/1.1 " + (Int32)status + " " + status + "\r\n");
+            sb.Append("Content-Length: " + JsonConvert.SerializeObject(output).Length + "\r\n");
             sb.Append("Content-Type: application/json; charset=utf-8" + "\r\n");
             sb.Append("\r\n");
             sb.Append(JsonConvert.SerializeObject(output));
+            Console.WriteLine(sb.ToString());
             return sb.ToString();
         }
 
@@ -416,9 +412,9 @@ namespace Boggle
                 // The socket has been closed
                 if (bytesSent == 0)
                 {
-                    socket.Close();
-                    server.RemoveClient(this);
-                    Console.WriteLine("Socket closed");
+                    //socket.Close();
+                    //server.RemoveClient(this);
+                    //Console.WriteLine("Socket closed");
                 }
 
                 // Update the pendingIndex and keep trying
