@@ -5,8 +5,9 @@ using System.Net.Sockets;
 using Newtonsoft.Json;
 using System.Threading;
 using System.Collections.Generic;
+using System.Dynamic;
 
-namespace Chat
+namespace Boggle
 {
     public class BoggleServer
     {
@@ -136,7 +137,6 @@ namespace Chat
         private int pendingIndex = 0;
 
         // Name of chatter or null if unknown
-        private string name = null;
         private BoggleServer server;
 
         private static bool isFirstLine;
@@ -145,6 +145,8 @@ namespace Chat
         private static int ContentLength;
 
         private static HttpStatusCode status;
+
+        private static BoggleService boggleService;
 
         /// <summary>
         /// Creates a ClientConnection from the socket, then begins communicating with it.
@@ -159,6 +161,7 @@ namespace Chat
             isFirstLine = true;
             ContentLength = -1;
             inHeaderSection = true;
+            boggleService = new BoggleService();
 
             try
             {
@@ -259,46 +262,53 @@ namespace Chat
                         {
                             body += incoming[i].ToString();
                         }
-                        if(type != null)
+                        dynamic output = new ExpandoObject();
+                        if (type != null)
                         {
                             String[] urlArray = url.Split('/');
-                            if (type == "post")
-                            {                          
-                                if(urlArray[urlArray.Length - 1] == "users") //Create User
-                                {
-
-                                }
-                                else if (urlArray[urlArray.Length - 1] == "games") //Join game
-                                {
-
-                                }
-                            }
-                            else if (type == "get")
+                            if (type == "post" && urlArray[urlArray.Length - 1] == "users") //Create User
                             {
-                                if(urlArray[urlArray.Length - 2] == "games") //Get game status
-                                {
-                                    String[] Parameters = urlArray[urlArray.Length - 1].Split('?');
-                                    if(Parameters.Length == 1) //no brief = yes
-                                    {
-
-                                    }
-                                    else //brief
-                                    {
-
-                                    }
-                                }
+                                User input = new User();
+                                dynamic tempObject = JsonConvert.DeserializeObject(body);
+                                input.Nickname = tempObject.Nickname;
+                                output = boggleService.CreateUser(input, out status);
                             }
-                            else if (type == "put")
+                            if (type == "post" && urlArray[urlArray.Length - 1] == "games") //Join game
                             {
-                                if (urlArray[urlArray.Length - 1] == "games") //Cancel Join Request
+                                Game input = new Game();
+                                dynamic tempObject = JsonConvert.DeserializeObject(body);
+                                input.UserToken = tempObject.UserToken;
+                                input.TimeLimit = tempObject.TimeLimit;
+                                output = boggleService.JoinGame(input, out status);
+                            }
+                            if (type == "get" && urlArray[urlArray.Length - 2] == "games") //Get game status
+                            {
+                                String[] Parameters = urlArray[urlArray.Length - 1].Split('?');
+                                if (Parameters.Length > 1 && Parameters[1] == "Brief=yes") //brief = yes
                                 {
-
+                                    output = boggleService.GetGameStatus("yes", Parameters[0], out status);
                                 }
-                                if (urlArray[urlArray.Length - 2] == "games") //Play Word
+                                else //brief
                                 {
-
+                                    output = boggleService.GetGameStatus("no", Parameters[0], out status);
                                 }
                             }
+                            if (type == "put" && urlArray[urlArray.Length - 1] == "games") //Cancel Join Request
+                            {
+                                Token input = new Token();
+                                dynamic tempObject = JsonConvert.DeserializeObject(body);
+                                input.UserToken = tempObject.UserToken;
+                                boggleService.CancelJoin(input, out status);
+                            }
+                            if (type == "put" && urlArray[urlArray.Length - 2] == "games") //Play Word
+                            {
+                                PlayWord input = new PlayWord();
+                                dynamic tempObject = JsonConvert.DeserializeObject(body);
+                                input.UserToken = tempObject.UserToken;
+                                input.Word = tempObject.Word;
+                                output = boggleService.PlayWord(input, urlArray[urlArray.Length-1], out status);
+                            }
+                            SendMessage(formRespone(output, status));
                         }   
                     }
                 }
@@ -315,6 +325,17 @@ namespace Chat
                 {
                 }
             }
+        }
+
+        private string formRespone(dynamic output, HttpStatusCode status)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("HTTP / 1.1 " + status.GetTypeCode().ToString() +status.ToString() + "\r\n");
+            sb.Append("Content-Length: " + JsonConvert.SerializeObject(output).length + "\r\n");
+            sb.Append("Content-Type: application/json; charset=utf-8" + "\r\n");
+            sb.Append("\r\n");
+            sb.Append(JsonConvert.SerializeObject(output));
+            return sb.ToString();
         }
 
         /// <summary>

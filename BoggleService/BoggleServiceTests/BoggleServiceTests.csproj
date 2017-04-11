@@ -75,9 +75,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\BoggleService\BoggleService.csproj">
-      <Project>{27879B14-6F92-4FD5-B48E-723C9F6EE7B7}</Project>
-      <Name>BoggleService</Name>
+    <ProjectReference Include="..\MyBoggleService\MyBoggleService.csproj">
+      <Project>{96e93635-878d-4741-b64f-47935fba1c63}</Project>
+      <Name>MyBoggleService</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
