@@ -16,7 +16,6 @@ namespace Boggle
     public class BoggleService
     {
         private static string BoggleDB;
-        
         private static readonly object sync = new object();
         private readonly static HashSet<String> dictionary = new HashSet<string>();
 

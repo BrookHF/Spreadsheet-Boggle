@@ -196,10 +196,14 @@ namespace Chat
                 incoming.Append(incomingChars, 0, charsRead);
                 Console.WriteLine(incoming);
 
+                String line;
+                String type = "";
+
                 int lastNewline = -1;
                 int start = 0;
-                string body;
-                
+                string body = "";
+                String url = "";
+
                 if (isFirstLine)
                 {
                     lastNewline = -1;
@@ -208,11 +212,11 @@ namespace Chat
                     {
                         if (incoming[i] == '\n')
                         {
-                            String line = incoming.ToString(start, i + 1 - start);
+                            line = incoming.ToString(start, i + 1 - start);
 
                             String[] words = line.Split(' ');
-                            String type = words[0];
-                            String url = words[1];
+                            type = words[0].ToLower();
+                            url = words[1];
 
                             lastNewline = i;
                             start = i + 1;
@@ -227,7 +231,7 @@ namespace Chat
                     {
                         if (incoming[i] == '\n')
                         {
-                            String line = incoming.ToString(start, i + 1 - start);
+                            line = incoming.ToString(start, i + 1 - start);
 
                             if (incoming[0] == '\r' && incoming[1] == '\n')
                             {
@@ -251,14 +255,53 @@ namespace Chat
                 {
                     if(ContentLength != -1)
                     {
-                        if(incoming.Length == ContentLength)
+                        for(int i = 0; i < ContentLength; i++)
                         {
-                            body = Json
+                            body += incoming[i].ToString();
                         }
+                        if(type != null)
+                        {
+                            String[] urlArray = url.Split('/');
+                            if (type == "post")
+                            {                          
+                                if(urlArray[urlArray.Length - 1] == "users") //Create User
+                                {
+
+                                }
+                                else if (urlArray[urlArray.Length - 1] == "games") //Join game
+                                {
+
+                                }
+                            }
+                            else if (type == "get")
+                            {
+                                if(urlArray[urlArray.Length - 2] == "games") //Get game status
+                                {
+                                    String[] Parameters = urlArray[urlArray.Length - 1].Split('?');
+                                    if(Parameters.Length == 1) //no brief = yes
+                                    {
+
+                                    }
+                                    else //brief
+                                    {
+
+                                    }
+                                }
+                            }
+                            else if (type == "put")
+                            {
+                                if (urlArray[urlArray.Length - 1] == "games") //Cancel Join Request
+                                {
+
+                                }
+                                if (urlArray[urlArray.Length - 2] == "games") //Play Word
+                                {
+
+                                }
+                            }
+                        }   
                     }
                 }
-                
-                
 
                 incoming.Remove(0, lastNewline + 1);
 
