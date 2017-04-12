@@ -16,8 +16,11 @@ namespace Boggle
     public class BoggleService : IBoggleService
     {
         private static string BoggleDB;
+        private readonly static Dictionary<string, GameStatus> gameStatus = new Dictionary<string, GameStatus>();
         private static readonly object sync = new object();
+        private static int GameIDCount = 100;
         private readonly static HashSet<String> dictionary = new HashSet<string>();
+        private static GameStatus CurrGame = null;
         
         /// <summary>
         /// The most recent call to SetStatus determines the response code used when
@@ -142,6 +145,28 @@ namespace Boggle
                     }
                 }
             }
+            
+
+            // The method can terminate with a thrown exception for any number of reasons.  For example:
+            //
+            //  - The DB connection might fail
+            //  - The DB may find it necessary to abort the transaction because of a conflict with
+            //     some other user's transaction
+            //  - The insert may fail because it violates a primary key constraint 
+            //
+            // In a more robust implementation, we would want to catch and deal with exceptions if.  For example:
+            //
+            //  - If the DB aborts a transaction, we could just try it again.
+            //  - If the userID violates a uniqueness constraint because it is a duplicate, we could generate
+            //     a different one and try again.
+            //
+            // An unhandled exception in a REST request will not crash the server.  In a production server, we 
+            // would want to record all unhandled exceptions to a log file for later examination.  Otherwise,
+            // problems might remain undetected.  There is a probably a way to configure IIS so that it automtically 
+            // logs exceptions.  
+            //
+            // For your purposes, it is best to simply let unhandled exceptions propagate.  This will make
+            // debugging easier.
         }
 
         /// <summary>
@@ -153,7 +178,7 @@ namespace Boggle
         {
             lock (sync)
             {
-                if (game.UserToken == null || game.UserToken == "")
+                if (game.UserToken == null)
                 {
                     SetStatus(Forbidden);
                     return null;
@@ -210,7 +235,11 @@ namespace Boggle
                                     tempTimeLimit = (int)reader["TimeLimit"];
                                     tempGameID = (int)reader["GameID"];
                                 }
-                            }                       
+                            }
+
+                            //There is not a pending game
+
+                            //There is a pending game
 
                             if (hasRows)
                             {
@@ -221,7 +250,7 @@ namespace Boggle
                                     return null;
                                 }
 
-                                using (SqlCommand updateCommand = new SqlCommand("UPDATE Games SET Player2 = @Player2, GameState = @GameState, Board = @Board, TimeLimit = @TimeLimit, StartTime = @StartTime", conn, trans))
+                                using (SqlCommand updateCommand = new SqlCommand("UPDATE Games SET player2 = @Player2, GameState = @GameState, Board = @Board, TimeLimit = @TimeLimit, StartTime = @StartTime", conn, trans))
                                 {
                                     updateCommand.Parameters.AddWithValue("@Player2", game.UserToken);
                                     updateCommand.Parameters.AddWithValue("@GameState", "active");
@@ -259,6 +288,8 @@ namespace Boggle
                             {
                                 selectCommand.Parameters.AddWithValue("@GameState", "pending");
 
+                                // This executes a query (i.e. a select statement).  The result is an
+                                // SqlDataReader that you can use to iterate through the rows in the response.
                                 using (SqlDataReader reader = command.ExecuteReader())
                                 {
                                     reader.Read();
@@ -266,6 +297,7 @@ namespace Boggle
                                     returnID.GameID = reader["GameID"].ToString();
                                     return returnID;
                                 }
+
                             }
                         }
                     }
@@ -292,6 +324,8 @@ namespace Boggle
                         {
                             command.Parameters.AddWithValue("@GameState", "pending");
 
+                            // This executes a query (i.e. a select statement).  The result is an
+                            // SqlDataReader that you can use to iterate through the rows in the response.
                             using (SqlDataReader reader = command.ExecuteReader())
                             {
 
@@ -312,7 +346,8 @@ namespace Boggle
                             }
                         }
                     }
-                }              
+                }
+                
             }
         }
 
@@ -369,7 +404,6 @@ namespace Boggle
                                     SetStatus(Forbidden);
                                     return null;
                                 }
-                                reader.Read();
                                 if(reader["GameState"].ToString() != "active")
                                 {
                                     SetStatus(Conflict);
@@ -468,6 +502,8 @@ namespace Boggle
                             }
                             insertCommand.Parameters.AddWithValue("@Score", score.Score);
 
+                            // We execute the command with the ExecuteScalar method, which will return to
+                            // us the requested auto-generated ItemID.
                             insertCommand.ExecuteNonQuery();
                             trans.Commit();
                         }
@@ -519,15 +555,10 @@ namespace Boggle
                             command.Parameters.AddWithValue("@GameID", GameID);
                             using (SqlDataReader reader = command.ExecuteReader())
                             {
-                                if (reader.HasRows)
+                                if (reader.Read())
                                 {
-                                    reader.Read();
                                     tempGameState = (string)reader["GameState"];
-                                    if (reader["Player2"] is System.DBNull)
-                                    {
-
-                                    }
-                                    if (tempGameState == "pending") //Response if pending   || reader["Player2"] == System.DBNull
+                                    if (tempGameState == "pending") //Response if pending
                                     {
                                         GameStatusReturn gameStatusReturnPending = new GameStatusReturn();
                                         gameStatusReturnPending.GameState = "pending";
@@ -535,9 +566,7 @@ namespace Boggle
                                     }
                                     tempGameID = (int)reader["GameID"];
                                     tempPlayer1 = (string)reader["Player1"];
-                                    
                                     tempPlayer2 = (string)reader["Player2"];
-                                    
                                     tempBoard = (string)reader["Board"];
                                     tempStartTime = (DateTime)reader["StartTime"];
                                     tempTimeLimit = (int)reader["TimeLimit"];
@@ -563,7 +592,7 @@ namespace Boggle
                                 {
                                     if(reader["UserToken"].ToString() == tempPlayer1)
                                     {
-                                        tempPlayer1Info.Score += (int)reader["Score"];
+                                        tempPlayer1Info.Score += reader["Score"];
                                         WordPlayed wordPlayed = new WordPlayed();
                                         wordPlayed.Word = (string)reader["Word"];
                                         wordPlayed.Score = (int)reader["Score"];
@@ -571,7 +600,7 @@ namespace Boggle
                                     }
                                     else
                                     {
-                                        tempPlayer2Info.Score += (int)reader["Score"];
+                                        tempPlayer2Info.Score += reader["Score"];
                                         WordPlayed wordPlayed = new WordPlayed();
                                         wordPlayed.Word = (string)reader["Word"];
                                         wordPlayed.Score = (int)reader["Score"];
@@ -605,7 +634,8 @@ namespace Boggle
                             }
                         }
 
-                        GameStatusReturn gameStatusReturn = new GameStatusReturn();                       
+                        GameStatusReturn gameStatusReturn = new GameStatusReturn();
+                        
 
                         if (tempGameState != "pending")
                         {
@@ -619,8 +649,12 @@ namespace Boggle
 
                         //Need to update DB for gamestate and timeleft
                         using (SqlCommand updateCommand = new SqlCommand("UPDATE Games SET GameState = @GameState", conn, trans))
-                        {           
+                        {
+                            
                             updateCommand.Parameters.AddWithValue("@GameState", tempGameState);
+
+                            // We execute the command with the ExecuteScalar method, which will return to
+                            // us the requested auto-generated ItemID.
                             updateCommand.ExecuteNonQuery();
                             trans.Commit();
                         }
