@@ -202,6 +202,7 @@ namespace Boggle
                 String line;
                 String type = "";
 
+                bool keepAlive = false;
                 int lastNewline = -1;
                 int start = 0;
                 string body = "";
@@ -237,14 +238,22 @@ namespace Boggle
                             lastNewline = i;
                             start = i + 1;
                             incoming.Remove(0, lastNewline + 1);
+                            if(keepAlive)
+                            {
+                                if(incoming.)
+                            }
                             break;
                         }
                         else
                         {
                             String[] words = line.Split(' ');
-                            if (words[0] == "content-length:")
+                            if (words[0].ToLower() == "content-length:")
                             {
                                 int.TryParse(words[1], out ContentLength);
+                            }
+                            else if (line.ToLower() == "connection: keep-alive\r\n")
+                            {
+                                keepAlive = true;
                             }
                         }
                         lastNewline = i;
