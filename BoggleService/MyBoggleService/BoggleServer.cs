@@ -139,13 +139,13 @@ namespace Boggle
 
         // Name of chatter or null if unknown
         private BoggleServer server;
-        private static bool finishedHeader;
-        private static int ContentLength;
-        private static HttpStatusCode status;
-        private static BoggleService boggleService;
+        private bool finishedHeader;
+        private int ContentLength;
+        private HttpStatusCode status;
+        private BoggleService boggleService;
 
-        private static String url;
-        private static String type;
+        private String url;
+        private String type;
 
         /// <summary>
         /// Creates a ClientConnection from the socket, then begins communicating with it.
@@ -183,7 +183,6 @@ namespace Boggle
             // Convert the bytes into characters and appending to incoming
             int charsRead = decoder.GetChars(incomingBytes, 0, bytesRead, incomingChars, 0, false);
             incoming.Append(incomingChars, 0, charsRead);
-            Console.WriteLine(incoming);
 
             String line;
             string body = "";
@@ -317,7 +316,6 @@ namespace Boggle
             sb.Append("Content-Type: application/json; charset=utf-8" + "\r\n");
             sb.Append("\r\n");
             sb.Append(JsonConvert.SerializeObject(output));
-            Console.WriteLine(sb.ToString());
             return sb.ToString();
         }
 
@@ -399,9 +397,9 @@ namespace Boggle
                 // The socket has been closed
                 if (bytesSent == 0)
                 {
-                    socket.Close();
-                    server.RemoveClient(this);
-                    Console.WriteLine("Socket closed");
+                    //socket.Close();
+                    //server.RemoveClient(this);
+                    //Console.WriteLine("Socket closed");
                 }
                 // Update the pendingIndex and keep trying
                 else
