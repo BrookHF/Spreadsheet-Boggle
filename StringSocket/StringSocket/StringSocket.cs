@@ -22,7 +22,7 @@ namespace CustomNetworking
     public delegate void ReceiveCallback(String s, object payload);
 
     /// <summary> 
-    /// A StringSocket is a wrapper around a Socket.  It provides methods that
+    /// A StringSocket is a wrapper around a Socket. It provides methods that
     /// asynchronously read lines of text (strings terminated by newlines) and 
     /// write strings. (As opposed to Sockets, which read and write raw bytes.)  
     ///
