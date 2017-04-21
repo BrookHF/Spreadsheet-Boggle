@@ -107,7 +107,6 @@ namespace CustomNetworking
             decoder = encoding.GetDecoder();
 
             payload = new object();
-            callback = new SendCallback();
 
             incoming = new StringBuilder();
             outgoing = new StringBuilder();
@@ -230,8 +229,8 @@ namespace CustomNetworking
                 // The socket has been closed
                 if (bytesSent == 0)
                 {
-                    socket.Close();
-                    Console.WriteLine("Socket closed");
+                    callback(true, payload);
+                    Dispose();
                 }
 
                 // Update the pendingIndex and keep trying
@@ -297,8 +296,8 @@ namespace CustomNetworking
             // Report that to the console and close our socket.
             if (bytesRead == 0)
             {
-                Console.WriteLine("Socket closed");
-                socket.Close();
+                callback(true, payload);
+                Dispose();
             }
 
             // Otherwise, decode and display the incoming bytes.  Then request more bytes.
