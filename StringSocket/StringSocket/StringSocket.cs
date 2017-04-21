@@ -89,10 +89,11 @@ namespace CustomNetworking
         private byte[] pendingBytes = new byte[0];
         private int pendingIndex = 0;
 
-        // Name of chatter or null if unknown
-        private object payload;
+        ReceiveCallback receiveCallback;
+        object receivePayload;
 
-        private SendCallback callback;
+        SendCallback sendCallback;
+        object sendPayload;
 
         /// <summary>
         /// Creates a StringSocket from a regular Socket, which should already be connected.  
@@ -105,8 +106,6 @@ namespace CustomNetworking
             socket = s;
             encoding = e;
             decoder = encoding.GetDecoder();
-
-            payload = new object();
 
             incoming = new StringBuilder();
             outgoing = new StringBuilder();
@@ -160,6 +159,9 @@ namespace CustomNetworking
         {
             // TODO: Implement BeginSend
             // Get exclusive access to send mechanism
+            sendCallback = callback;
+            sendPayload = payload;
+
             lock (sendSync)
             {
                 // Append the message to the outgoing lines
@@ -229,7 +231,7 @@ namespace CustomNetworking
                 // The socket has been closed
                 if (bytesSent == 0)
                 {
-                    callback(true, payload);
+                    sendCallback(true, sendPayload);
                     Dispose();
                 }
 
@@ -283,54 +285,37 @@ namespace CustomNetworking
         public void BeginReceive(ReceiveCallback callback, object payload, int length = 0)
         {
             // TODO: Implement BeginReceive
+            this.receiveCallback = callback;
+            this.receivePayload = payload;
             socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
-                                SocketFlags.None, MessageReceived, null);
+                    SocketFlags.None, MessageReceived, null);
         }
 
         private void MessageReceived(IAsyncResult result)
         {
-            // Figure out how many bytes have come in
             int bytesRead = socket.EndReceive(result);
 
-            // If no bytes were received, it means the client closed its side of the socket.
-            // Report that to the console and close our socket.
-            if (bytesRead == 0)
-            {
-                callback(true, payload);
-                Dispose();
-            }
+            int charsRead = decoder.GetChars(incomingBytes, 0, bytesRead, incomingChars, 0, false);
+            incoming.Append(incomingChars, 0, charsRead);
 
-            // Otherwise, decode and display the incoming bytes.  Then request more bytes.
-            else
+            // Echo any complete lines, after capitalizing them
+            int lastNewline = -1;
+            for (int i = 0; i < incoming.Length; i++)
             {
-                // Convert the bytes into characters and appending to incoming
-                int charsRead = decoder.GetChars(incomingBytes, 0, bytesRead, incomingChars, 0, false);
-                incoming.Append(incomingChars, 0, charsRead);
-                //Console.WriteLine(incoming);
-
-                // Echo any complete lines, after capitalizing them
-                int lastNewline = -1;
-                int start = 0;
-                for (int i = 0; i < incoming.Length; i++)
+                if (incoming[i] == '\n')
                 {
-                    if (incoming[i] == '\n')
-                    {
-                        String line = incoming.ToString(start, i + 1 - start);
-
-
-                        BeginSend(line.ToUpper(), callback, payload);
-                        lastNewline = i;
-                        start = i + 1;
-                    }
+                    String line = incoming.ToString(0, i);
+                    receiveCallback(line, receivePayload);
+                    lastNewline = i;
                 }
-                incoming.Remove(0, lastNewline + 1);
-
-                // Ask for some more data
-                socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
-                    SocketFlags.None, MessageReceived, null);
             }
-        }
+            incoming.Remove(0, lastNewline + 1);
 
+            // Ask for some more data
+            socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
+                    SocketFlags.None, MessageReceived, null);
+        }
+    
         /// <summary>
         /// Frees resources associated with this StringSocket.
         /// </summary>
@@ -339,5 +324,5 @@ namespace CustomNetworking
             Shutdown(SocketShutdown.Both);
             Close();
         }
-    }
+    }  
 }
