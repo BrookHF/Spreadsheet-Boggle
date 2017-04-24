@@ -68,12 +68,6 @@ namespace CustomNetworking
         // Buffer size for reading incoming bytes
         private const int BUFFER_SIZE = 1024;
 
-        // Text that has been received from the client but not yet dealt with
-        private StringBuilder incoming;
-
-        // Text that needs to be sent to the client but which we have not yet started sending
-        private StringBuilder outgoing;
-
         // Buffers that will contain incoming bytes and characters
         private byte[] incomingBytes = new byte[BUFFER_SIZE];
         private char[] incomingChars = new char[BUFFER_SIZE];
@@ -89,11 +83,40 @@ namespace CustomNetworking
         private byte[] pendingBytes = new byte[0];
         private int pendingIndex = 0;
 
-        ReceiveCallback receiveCallback;
-        object receivePayload;
+        private StringBuilder incoming = new StringBuilder();
 
-        SendCallback sendCallback;
-        object sendPayload;
+        private class sendCallbackPair
+        {
+            public string str { get; set; }
+            public SendCallback callback { get; set; }
+            public object payload { get; set; }
+            public sendCallbackPair(string str, SendCallback callback, object payload)
+            {
+                this.str = str;
+                this.callback = callback;
+                this.payload = payload;
+            }
+        }
+
+        private class recieveCallbackPair
+        {
+            public string str { get; set; }
+            public ReceiveCallback callback { get; set; }
+            public object payload { get; set; }
+            public recieveCallbackPair(string str, ReceiveCallback callback, object payload)
+            {
+                this.str = str;
+                this.callback = callback;
+                this.payload = payload;
+            }
+        }
+
+        private sendCallbackPair currSentPair;
+        private recieveCallbackPair currRecievePair;
+
+
+        private Queue<sendCallbackPair> sendQue = new Queue<sendCallbackPair>();
+        private Queue<recieveCallbackPair> recieveQue = new Queue<recieveCallbackPair>();
 
         /// <summary>
         /// Creates a StringSocket from a regular Socket, which should already be connected.  
@@ -106,9 +129,6 @@ namespace CustomNetworking
             socket = s;
             encoding = e;
             decoder = encoding.GetDecoder();
-
-            incoming = new StringBuilder();
-            outgoing = new StringBuilder();
 
             // Ask the socket to call MessageReceive as soon as up to 1024 bytes arrive.
             socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
@@ -159,13 +179,11 @@ namespace CustomNetworking
         {
             // TODO: Implement BeginSend
             // Get exclusive access to send mechanism
-            sendCallback = callback;
-            sendPayload = payload;
 
             lock (sendSync)
             {
-                // Append the message to the outgoing lines
-                outgoing.Append(s);
+
+                sendQue.Enqueue(new sendCallbackPair(s, callback, payload));
 
                 // If there's not a send ongoing, start one.
                 if (!sendIsOngoing)
@@ -173,10 +191,6 @@ namespace CustomNetworking
                     Console.WriteLine("Appending a " + s.Length + " char line, starting send mechanism");
                     sendIsOngoing = true;
                     SendBytes();
-                }
-                else
-                {
-                    Console.WriteLine("\tAppending a " + s.Length + " char line, send mechanism already running");
                 }
             }
         }
@@ -189,31 +203,29 @@ namespace CustomNetworking
         {
             // If we're in the middle of the process of sending out a block of bytes,
             // keep doing that.
+
             if (pendingIndex < pendingBytes.Length)
             {
                 Console.WriteLine("\tSending " + (pendingBytes.Length - pendingIndex) + " bytes");
                 socket.BeginSend(pendingBytes, pendingIndex, pendingBytes.Length - pendingIndex,
                                  SocketFlags.None, MessageSent, null);
             }
-
-            // If we're not currently dealing with a block of bytes, make a new block of bytes
-            // out of outgoing and start sending that.
-            else if (outgoing.Length > 0)
+            else if (sendQue.Count > 0)
             {
-                pendingBytes = encoding.GetBytes(outgoing.ToString());
+                //currSentPair.callback(true, currSentPair.payload);
+                currSentPair = sendQue.Dequeue();
                 pendingIndex = 0;
-                Console.WriteLine("\tConverting " + outgoing.Length + " chars into " + pendingBytes.Length + " bytes, sending them");
-                outgoing.Clear();
+                pendingBytes = encoding.GetBytes(currSentPair.str);
                 socket.BeginSend(pendingBytes, 0, pendingBytes.Length,
                                  SocketFlags.None, MessageSent, null);
             }
-
-            // If there's nothing to send, shut down for the time being.
             else
             {
+                currSentPair.callback(true, currSentPair.payload);
+                // If there's nothing to send, shut down for the time being.
                 Console.WriteLine("Shutting down send mechanism\n");
                 sendIsOngoing = false;
-            }
+            } 
         }
 
         /// <summary>
@@ -228,15 +240,7 @@ namespace CustomNetworking
             // Get exclusive access to send mechanism
             lock (sendSync)
             {
-                // The socket has been closed
-                if (bytesSent == 0)
-                {
-                    sendCallback(true, sendPayload);
-                    Dispose();
-                }
-
-                // Update the pendingIndex and keep trying
-                else
+                if (bytesSent != 0)
                 {
                     pendingIndex += bytesSent;
                     SendBytes();
@@ -285,8 +289,15 @@ namespace CustomNetworking
         public void BeginReceive(ReceiveCallback callback, object payload, int length = 0)
         {
             // TODO: Implement BeginReceive
-            this.receiveCallback = callback;
-            this.receivePayload = payload;
+            if(currRecievePair != null)
+            {
+                recieveQue.Enqueue(new recieveCallbackPair("", callback, payload));
+            }
+            else
+            {
+                currRecievePair = new recieveCallbackPair("", callback, payload);
+            }
+            
             socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
                     SocketFlags.None, MessageReceived, null);
         }
@@ -295,21 +306,29 @@ namespace CustomNetworking
         {
             int bytesRead = socket.EndReceive(result);
 
-            int charsRead = decoder.GetChars(incomingBytes, 0, bytesRead, incomingChars, 0, false);
-            incoming.Append(incomingChars, 0, charsRead);
-
-            // Echo any complete lines, after capitalizing them
-            int lastNewline = -1;
-            for (int i = 0; i < incoming.Length; i++)
+            // Otherwise, decode and display the incoming bytes.  Then request more bytes.
+            if (bytesRead != 0)
             {
-                if (incoming[i] == '\n')
+                // Echo any complete lines, after capitalizing them
+                int lastNewline = -1;
+                int charsRead = decoder.GetChars(incomingBytes, 0, bytesRead, incomingChars, 0, false);
+                incoming.Append(incomingChars, 0, charsRead);
+                for (int i = 0; i < incoming.Length; i++)
                 {
-                    String line = incoming.ToString(0, i);
-                    receiveCallback(line, receivePayload);
-                    lastNewline = i;
+                    
+                    if (incoming[i] == '\n')
+                    {
+                        String line = incoming.ToString(0, i);
+                        currRecievePair.callback(line, currRecievePair.payload);
+                        lastNewline = i;
+                        if (recieveQue.Count > 0)
+                        {
+                            currRecievePair = recieveQue.Dequeue();
+                        }
+                    }
                 }
+                incoming.Remove(0, lastNewline + 1);
             }
-            incoming.Remove(0, lastNewline + 1);
 
             // Ask for some more data
             socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
