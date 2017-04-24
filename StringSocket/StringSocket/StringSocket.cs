@@ -221,11 +221,12 @@ namespace CustomNetworking
             }
             else
             {
-                currSentPair.callback(true, currSentPair.payload);
+                
                 // If there's nothing to send, shut down for the time being.
                 Console.WriteLine("Shutting down send mechanism\n");
                 sendIsOngoing = false;
-            } 
+            }
+            currSentPair.callback(true, currSentPair.payload);
         }
 
         /// <summary>
@@ -310,24 +311,20 @@ namespace CustomNetworking
             if (bytesRead != 0)
             {
                 // Echo any complete lines, after capitalizing them
-                int lastNewline = -1;
                 int charsRead = decoder.GetChars(incomingBytes, 0, bytesRead, incomingChars, 0, false);
                 incoming.Append(incomingChars, 0, charsRead);
-                for (int i = 0; i < incoming.Length; i++)
+
+                int lastChar = incoming.Length - 1;
+                if (incoming[lastChar] == '\n')
                 {
-                    
-                    if (incoming[i] == '\n')
+                    String line = incoming.ToString(0, lastChar);
+                    currRecievePair.callback(line, currRecievePair.payload);
+                    if (recieveQue.Count > 0)
                     {
-                        String line = incoming.ToString(0, i);
-                        currRecievePair.callback(line, currRecievePair.payload);
-                        lastNewline = i;
-                        if (recieveQue.Count > 0)
-                        {
-                            currRecievePair = recieveQue.Dequeue();
-                        }
+                        currRecievePair = recieveQue.Dequeue();
                     }
+                    incoming.Remove(0, lastChar);
                 }
-                incoming.Remove(0, lastNewline + 1);
             }
 
             // Ask for some more data
