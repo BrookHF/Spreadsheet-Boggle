@@ -73,11 +73,13 @@ namespace CustomNetworking
         private char[] incomingChars = new char[BUFFER_SIZE];
 
         // Records whether an asynchronous send attempt is ongoing
-        private bool sendIsOngoing = false;
-        private bool receiveOngoing = false;
+        private bool sendIsOngoing;
+        private bool receiveOngoing;
 
         // For synchronizing sends
         private readonly object sendSync = new object();
+        private readonly object recieveSync = new object();
+        private readonly object queSync = new object();
 
         // Bytes that we are actively trying to send, along with the
         // index of the leftmost byte whose send has not yet been completed
@@ -113,11 +115,10 @@ namespace CustomNetworking
         }
 
         private sendCallbackPair currSentPair;
-        private recieveCallbackPair currRecievePair;
 
 
-        private Queue<sendCallbackPair> sendQue = new Queue<sendCallbackPair>();
-        private Queue<recieveCallbackPair> recieveQue = new Queue<recieveCallbackPair>();
+        private Queue<sendCallbackPair> sendQue;
+        private Queue<recieveCallbackPair> recieveQue;
 
         /// <summary>
         /// Creates a StringSocket from a regular Socket, which should already be connected.  
@@ -129,7 +130,12 @@ namespace CustomNetworking
         {
             socket = s;
             encoding = e;
+            sendIsOngoing = false;
+            receiveOngoing = false;
+
             decoder = encoding.GetDecoder();
+            sendQue = new Queue<sendCallbackPair>();
+            recieveQue = new Queue<recieveCallbackPair>();
 
             // Ask the socket to call MessageReceive as soon as up to 1024 bytes arrive.
             socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
@@ -290,51 +296,67 @@ namespace CustomNetworking
         /// </summary>
         public void BeginReceive(ReceiveCallback callback, object payload, int length = 0)
         {
-
-            recieveQue.Enqueue(new recieveCallbackPair("", callback, payload));
-            if (!receiveOngoing)
+            lock (recieveSync)
             {
-                receiveOngoing = true;
-                socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
-                    SocketFlags.None, MessageReceived, null);
+                lock (queSync)
+                {
+                    recieveQue.Enqueue(new recieveCallbackPair("", callback, payload));
+                }
+                if (!receiveOngoing && recieveQue.Count > 0)
+                {
+                    receiveOngoing = true;
+                    socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
+                        SocketFlags.None, MessageReceived, null);
+                }
             }
+            
         }
+
+        private int lastIndex = 0;
 
         private void MessageReceived(IAsyncResult result)
         {
-
-            int bytesRead = socket.EndReceive(result);
-
-            // Otherwise, decode and display the incoming bytes.  Then request more bytes.
-            if (bytesRead != 0)
+            lock (recieveSync)
             {
-                // Echo any complete lines, after capitalizing them
-                int charsRead = decoder.GetChars(incomingBytes, 0, bytesRead, incomingChars, 0, false);
-                incoming.Append(incomingChars, 0, charsRead);
+                int bytesRead = socket.EndReceive(result);
 
-                int lastChar = incoming.Length - 1;
-                for(int i=0; i<incoming.Length; i++)
+                // Otherwise, decode and display the incoming bytes.  Then request more bytes.
+                if (bytesRead != 0)
                 {
-                    if (incoming[i] == '\n')
+                    // Echo any complete lines, after capitalizing them
+                    int charsRead = decoder.GetChars(incomingBytes, 0, bytesRead, incomingChars, 0, false);
+                    incoming.Append(incomingChars, 0, charsRead);
+
+                    for (int i = lastIndex; i < incoming.Length; i++)
                     {
-                        String line = incoming.ToString(0, i);
-                        recieveCallbackPair temp = recieveQue.Dequeue();
-                        temp.callback(line, temp.payload);
-                        if (recieveQue.Count == 0)
+                        if (incoming[i] == '\n')
                         {
-                            receiveOngoing = false;
+                            String line = incoming.ToString(0, i);
+                            recieveCallbackPair temp;
+                            lock (queSync)
+                            {
+                                temp = recieveQue.Dequeue();
+                            }
+                            temp.callback(line, temp.payload);
+                            if (recieveQue.Count == 0)
+                            {
+                                receiveOngoing = false;
+                            }
+                            incoming.Remove(0, i);
+                            break;
                         }
-                        incoming.Remove(0, i);
                     }
+                    lastIndex = incoming.Length;
+                }
+
+                // Ask for some more data
+                if (receiveOngoing)
+                {
+                    socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
+                        SocketFlags.None, MessageReceived, null);
                 }
             }
-
-            // Ask for some more data
-            if (receiveOngoing)
-            {
-                socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
-                    SocketFlags.None, MessageReceived, null);
-            }
+            
             
         }
     
