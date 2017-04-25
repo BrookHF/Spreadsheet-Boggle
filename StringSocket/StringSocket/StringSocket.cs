@@ -74,6 +74,7 @@ namespace CustomNetworking
 
         // Records whether an asynchronous send attempt is ongoing
         private bool sendIsOngoing = false;
+        private bool receiveOngoing = false;
 
         // For synchronizing sends
         private readonly object sendSync = new object();
@@ -289,22 +290,19 @@ namespace CustomNetworking
         /// </summary>
         public void BeginReceive(ReceiveCallback callback, object payload, int length = 0)
         {
-            // TODO: Implement BeginReceive
-            if(currRecievePair != null)
+
+            recieveQue.Enqueue(new recieveCallbackPair("", callback, payload));
+            if (!receiveOngoing)
             {
-                recieveQue.Enqueue(new recieveCallbackPair("", callback, payload));
-            }
-            else
-            {
-                currRecievePair = new recieveCallbackPair("", callback, payload);
-            }
-            
-            socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
+                receiveOngoing = true;
+                socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
                     SocketFlags.None, MessageReceived, null);
+            }
         }
 
         private void MessageReceived(IAsyncResult result)
         {
+
             int bytesRead = socket.EndReceive(result);
 
             // Otherwise, decode and display the incoming bytes.  Then request more bytes.
@@ -315,21 +313,29 @@ namespace CustomNetworking
                 incoming.Append(incomingChars, 0, charsRead);
 
                 int lastChar = incoming.Length - 1;
-                if (incoming[lastChar] == '\n')
+                for(int i=0; i<incoming.Length; i++)
                 {
-                    String line = incoming.ToString(0, lastChar);
-                    currRecievePair.callback(line, currRecievePair.payload);
-                    if (recieveQue.Count > 0)
+                    if (incoming[i] == '\n')
                     {
-                        currRecievePair = recieveQue.Dequeue();
+                        String line = incoming.ToString(0, i);
+                        recieveCallbackPair temp = recieveQue.Dequeue();
+                        temp.callback(line, temp.payload);
+                        if (recieveQue.Count == 0)
+                        {
+                            receiveOngoing = false;
+                        }
+                        incoming.Remove(0, i);
                     }
-                    incoming.Remove(0, lastChar);
                 }
             }
 
             // Ask for some more data
-            socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
+            if (receiveOngoing)
+            {
+                socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
                     SocketFlags.None, MessageReceived, null);
+            }
+            
         }
     
         /// <summary>

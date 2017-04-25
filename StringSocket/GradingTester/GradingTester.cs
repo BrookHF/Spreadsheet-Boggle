@@ -298,7 +298,7 @@ namespace GradingTester
                 try
                 {
                     StringBuilder text = new StringBuilder();
-                    for (int i = 0; i < 100000; i++)
+                    for (int i = 0; i < 100; i++)
                     {
                         text.Append(i);
                     }
@@ -307,6 +307,9 @@ namespace GradingTester
                     sender.BeginSend(text.ToString(), (s, p) => { }, null);
                     receiver.BeginReceive((s, p) => { line = s; mre.Set(); }, null);
                     mre.WaitOne();
+                    Console.WriteLine(line);
+                    Console.WriteLine(str);
+
                     Assert.AreEqual(str, line);
                 }
                 finally
