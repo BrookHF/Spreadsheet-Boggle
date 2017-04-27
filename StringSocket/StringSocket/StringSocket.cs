@@ -138,8 +138,8 @@ namespace CustomNetworking
             recieveQue = new Queue<recieveCallbackPair>();
 
             // Ask the socket to call MessageReceive as soon as up to 1024 bytes arrive.
-            socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
-                                SocketFlags.None, MessageReceived, null);
+            //socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
+            //                    SocketFlags.None, MessageReceived, null);
         }
 
         /// <summary>
@@ -195,7 +195,6 @@ namespace CustomNetworking
                 // If there's not a send ongoing, start one.
                 if (!sendIsOngoing)
                 {
-                    Console.WriteLine("Appending a " + s.Length + " char line, starting send mechanism");
                     sendIsOngoing = true;
                     SendBytes();
                 }
@@ -211,13 +210,12 @@ namespace CustomNetworking
             // If we're in the middle of the process of sending out a block of bytes,
             // keep doing that.
 
-            if (pendingIndex < pendingBytes.Length)
+            if (pendingIndex < pendingBytes.Length && sendIsOngoing)
             {
-                Console.WriteLine("\tSending " + (pendingBytes.Length - pendingIndex) + " bytes");
                 socket.BeginSend(pendingBytes, pendingIndex, pendingBytes.Length - pendingIndex,
                                  SocketFlags.None, MessageSent, null);
             }
-            else if (sendQue.Count > 0)
+            else if (sendQue.Count > 0 && sendIsOngoing)
             {
                 //currSentPair.callback(true, currSentPair.payload);
                 currSentPair = sendQue.Dequeue();
@@ -228,9 +226,7 @@ namespace CustomNetworking
             }
             else
             {
-                
                 // If there's nothing to send, shut down for the time being.
-                Console.WriteLine("Shutting down send mechanism\n");
                 sendIsOngoing = false;
             }
             currSentPair.callback(true, currSentPair.payload);
