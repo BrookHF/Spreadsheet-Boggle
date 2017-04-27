@@ -316,8 +316,6 @@ namespace CustomNetworking
 
             int bytesRead = socket.EndReceive(result);
 
-
-
             // Echo any complete lines, after capitalizing them
             int charsRead = decoder.GetChars(incomingBytes, 0, bytesRead, incomingChars, 0, false);
             incoming.Append(incomingChars, 0, charsRead);
