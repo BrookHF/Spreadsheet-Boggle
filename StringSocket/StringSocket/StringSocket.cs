@@ -312,48 +312,48 @@ namespace CustomNetworking
 
         private void MessageReceived(IAsyncResult result)
         {
-            lock (recieveSync)
+
+
+            int bytesRead = socket.EndReceive(result);
+
+
+
+            // Echo any complete lines, after capitalizing them
+            int charsRead = decoder.GetChars(incomingBytes, 0, bytesRead, incomingChars, 0, false);
+            incoming.Append(incomingChars, 0, charsRead);
+
+            for (int i = lastIndex; i < incoming.Length; i++)
             {
-                int bytesRead = socket.EndReceive(result);
-
-                // Otherwise, decode and display the incoming bytes.  Then request more bytes.
-                if (bytesRead != 0)
+                if (incoming[i] == '\n')
                 {
-                    // Echo any complete lines, after capitalizing them
-                    int charsRead = decoder.GetChars(incomingBytes, 0, bytesRead, incomingChars, 0, false);
-                    incoming.Append(incomingChars, 0, charsRead);
-
-                    for (int i = lastIndex; i < incoming.Length; i++)
+                    String line = incoming.ToString(0, i);
+                    recieveCallbackPair temp;
+                    lock (queSync)
                     {
-                        if (incoming[i] == '\n')
-                        {
-                            String line = incoming.ToString(0, i);
-                            recieveCallbackPair temp;
-                            lock (queSync)
-                            {
-                                temp = recieveQue.Dequeue();
-                            }
-                            temp.callback(line, temp.payload);
-                            if (recieveQue.Count == 0)
-                            {
-                                receiveOngoing = false;
-                            }
-                            incoming.Remove(0, i + 1);
-                            break;
-                        }
+                        temp = recieveQue.Dequeue();
                     }
-                    lastIndex = incoming.Length;
+                    temp.callback(line, temp.payload);
+                    if (recieveQue.Count == 0)
+                    {
+                        receiveOngoing = false;
+                    }
+                    incoming.Remove(0, i + 1);
+                    lastIndex = 0;
+                    break;
                 }
-
-                // Ask for some more data
-                if (receiveOngoing)
+                else
                 {
-                    socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
-                        SocketFlags.None, MessageReceived, null);
+                    lastIndex = i;
                 }
+                
             }
 
-
+            // Ask for some more data
+            if (receiveOngoing)
+            {
+                socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
+                    SocketFlags.None, MessageReceived, null);
+            }
         }
 
         /// <summary>
