@@ -309,7 +309,7 @@ namespace CustomNetworking
                         SocketFlags.None, MessageReceived, null);
                 }
             }
-            
+
         }
 
         private int lastIndex = 0;
@@ -342,7 +342,7 @@ namespace CustomNetworking
                             {
                                 receiveOngoing = false;
                             }
-                            incoming.Remove(0, i);
+                            incoming.Remove(0, i + 1);
                             break;
                         }
                     }
@@ -356,10 +356,10 @@ namespace CustomNetworking
                         SocketFlags.None, MessageReceived, null);
                 }
             }
-            
-            
+
+
         }
-    
+
         /// <summary>
         /// Frees resources associated with this StringSocket.
         /// </summary>
